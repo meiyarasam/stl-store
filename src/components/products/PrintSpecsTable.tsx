@@ -97,3 +97,4 @@ export function PrintSpecsTable({ product }: PrintSpecsTableProps) {
     </div>
   );
 }
+

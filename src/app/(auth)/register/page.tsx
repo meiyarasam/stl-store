@@ -8,7 +8,7 @@ import { useStore } from "@/context/StoreContext";
 import { COUNTRIES_LIST } from "@/lib/currency/currencies";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Layers, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Layers, AlertCircle, CheckCircle2, Eye, EyeOff } from "lucide-react";
 
 function RegisterForm() {
   const router = useRouter();
@@ -20,6 +20,8 @@ function RegisterForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState(country || "US");
 
   const initialDialCode =
@@ -152,25 +154,57 @@ function RegisterForm() {
             <label className="block text-xs font-semibold text-zinc-700 mb-1">
               Password (min 8 chars) *
             </label>
-            <Input
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-            />
+            <div className="relative">
+              <Input
+                type={showPassword ? "text" : "password"}
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-3.5 text-zinc-400 hover:text-zinc-700 focus:outline-none transition-colors"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                tabIndex={-1}
+              >
+                {showPassword ? (
+                  <EyeOff className="w-4 h-4 text-zinc-600" />
+                ) : (
+                  <Eye className="w-4 h-4 text-zinc-400 hover:text-zinc-600" />
+                )}
+              </button>
+            </div>
           </div>
           <div>
             <label className="block text-xs font-semibold text-zinc-700 mb-1">
               Confirm Password *
             </label>
-            <Input
-              type="password"
-              required
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="••••••••"
-            />
+            <div className="relative">
+              <Input
+                type={showConfirmPassword ? "text" : "password"}
+                required
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="••••••••"
+                className="pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 top-3.5 text-zinc-400 hover:text-zinc-700 focus:outline-none transition-colors"
+                aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                tabIndex={-1}
+              >
+                {showConfirmPassword ? (
+                  <EyeOff className="w-4 h-4 text-zinc-600" />
+                ) : (
+                  <Eye className="w-4 h-4 text-zinc-400 hover:text-zinc-600" />
+                )}
+              </button>
+            </div>
           </div>
         </div>
 

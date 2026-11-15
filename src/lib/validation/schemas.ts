@@ -58,3 +58,4 @@ export const productCreateSchema = z.object({
   prices: z.record(z.string(), z.number().nonnegative()),
   images: z.array(z.string()).min(1, "At least one preview image is required"),
 });
+

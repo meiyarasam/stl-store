@@ -298,3 +298,4 @@ export async function getProductById(id: string): Promise<ProductDTO | null> {
   const sample = SAMPLE_PRODUCTS.find((p) => p.id === id);
   return sample ? mapSampleProductToDTO(sample) : null;
 }
+

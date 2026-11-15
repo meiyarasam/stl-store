@@ -46,3 +46,4 @@ export async function getCategoryBySlug(slug: string): Promise<SampleCategory | 
 
   return SAMPLE_CATEGORIES.find((c) => c.slug === slug) || null;
 }
+

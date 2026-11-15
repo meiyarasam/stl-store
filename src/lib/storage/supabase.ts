@@ -108,3 +108,4 @@ export async function uploadPublicImage(
     return { publicUrl: null, error: err.message || "Image upload failed" };
   }
 }
+

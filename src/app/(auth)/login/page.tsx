@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Layers, Lock, Mail, AlertCircle } from "lucide-react";
+import { Layers, Lock, Mail, AlertCircle, Eye, EyeOff } from "lucide-react";
 
 function LoginForm() {
   const router = useRouter();
@@ -15,6 +15,7 @@ function LoginForm() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -98,14 +99,27 @@ function LoginForm() {
           </div>
           <div className="relative">
             <Input
-              type="password"
+              type={showPassword ? "text" : "password"}
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="pl-9"
+              className="pl-9 pr-10"
             />
             <Lock className="w-4 h-4 text-zinc-400 absolute left-3 top-3.5" />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-3.5 text-zinc-400 hover:text-zinc-700 focus:outline-none transition-colors"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              tabIndex={-1}
+            >
+              {showPassword ? (
+                <EyeOff className="w-4 h-4 text-zinc-600" />
+              ) : (
+                <Eye className="w-4 h-4 text-zinc-400 hover:text-zinc-600" />
+              )}
+            </button>
           </div>
         </div>
 

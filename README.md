@@ -279,3 +279,4 @@ Unlike stores that blindly multiply by live fluctuating forex rates, STLForge im
 
 Copyright © 2026 STLForge. All rights reserved.
 Source code provided for personal, commercial, and enterprise deployment under the Standard Software License.
+

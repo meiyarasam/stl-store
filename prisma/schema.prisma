@@ -405,3 +405,4 @@ model AdminActivity {
   @@index([adminId])
   @@index([action])
 }
+

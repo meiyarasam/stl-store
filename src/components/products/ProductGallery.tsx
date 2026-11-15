@@ -73,3 +73,4 @@ export function ProductGallery({ images, title }: ProductGalleryProps) {
     </div>
   );
 }
+

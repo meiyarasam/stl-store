@@ -2,6 +2,7 @@ import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import prisma from "@/lib/database/prisma";
+import { getLocalDevUser } from "@/lib/database/userStore";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -20,9 +21,22 @@ export const authOptions: NextAuthOptions = {
 
         try {
           // Attempt database lookup
-          const user = await prisma.user.findUnique({
-            where: { email },
-          });
+          let user = null;
+          try {
+            user = await prisma.user.findUnique({
+              where: { email },
+            });
+          } catch (dbError) {
+            console.warn("Database connection notice on user authorization:", dbError);
+          }
+
+          if (!user) {
+            // Check in-memory local dev user store
+            const devUser = getLocalDevUser(email);
+            if (devUser) {
+              user = devUser as any;
+            }
+          }
 
           if (!user || !user.passwordHash) {
             // Check fallback for default admin in local dev setup
@@ -106,3 +120,4 @@ export const authOptions: NextAuthOptions = {
   },
   secret: process.env.NEXTAUTH_SECRET || "stlforge-super-secret-production-key-2026",
 };
+

@@ -171,3 +171,4 @@ export function generateUPIString({
   const pn = encodeURIComponent(merchantName);
   return `upi://pay?pa=${merchantVpa}&pn=${pn}&tr=${orderId}&am=${amount.toFixed(2)}&cu=${currency}&tn=${note}`;
 }
+
