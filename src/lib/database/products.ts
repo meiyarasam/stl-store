@@ -1,4 +1,4 @@
-import prisma from "@/lib/database/prisma";
+import prisma, { isDatabaseReachable } from "@/lib/database/prisma";
 import { SAMPLE_PRODUCTS, SampleProduct } from "@/lib/data/sampleProducts";
 import { CurrencyCode, ProductDTO } from "@/types";
 
@@ -60,89 +60,93 @@ export async function getAllProducts({
   featuredOnly?: boolean;
   sort?: "newest" | "price-asc" | "price-desc" | "popular";
 } = {}): Promise<ProductDTO[]> {
-  try {
-    const where: any = { isPublished: true };
-    if (categorySlug) {
-      where.category = { slug: categorySlug };
-    }
-    if (search) {
-      where.OR = [
-        { title: { contains: search, mode: "insensitive" } },
-        { shortDescription: { contains: search, mode: "insensitive" } },
-      ];
-    }
-    if (featuredOnly) {
-      where.isFeatured = true;
-    }
+  const dbOnline = await isDatabaseReachable();
 
-    const dbProducts = await prisma.product.findMany({
-      where,
-      include: {
-        category: true,
-        prices: true,
-        images: { orderBy: { sortOrder: "asc" } },
-        files: true,
-      },
-      orderBy:
-        sort === "popular"
-          ? { downloadCount: "desc" }
-          : { createdAt: "desc" },
-    });
+  if (dbOnline) {
+    try {
+      const where: any = { isPublished: true };
+      if (categorySlug) {
+        where.category = { slug: categorySlug };
+      }
+      if (search) {
+        where.OR = [
+          { title: { contains: search, mode: "insensitive" } },
+          { shortDescription: { contains: search, mode: "insensitive" } },
+        ];
+      }
+      if (featuredOnly) {
+        where.isFeatured = true;
+      }
 
-    if (dbProducts && dbProducts.length > 0) {
-      return dbProducts.map((p) => ({
-        id: p.id,
-        title: p.title,
-        slug: p.slug,
-        shortDescription: p.shortDescription,
-        fullDescription: p.fullDescription,
-        categoryId: p.categoryId,
-        category: p.category
-          ? {
-              id: p.category.id,
-              name: p.category.name,
-              slug: p.category.slug,
-            }
-          : undefined,
-        supportedPrinters: p.supportedPrinters,
-        printingSettings: p.printingSettings,
-        licenceType: p.licenceType,
-        isPublished: p.isPublished,
-        isFeatured: p.isFeatured,
-        viewCount: p.viewCount,
-        downloadCount: p.downloadCount,
-        prices: p.prices.map((pr) => ({
-          id: pr.id,
-          currency: pr.currency as CurrencyCode,
-          amount: Number(pr.amount),
-          compareAtAmount: pr.compareAtAmount ? Number(pr.compareAtAmount) : null,
-          isEnabled: pr.isEnabled,
-        })),
-        images: p.images.map((img) => ({
-          id: img.id,
-          url: img.url,
-          altText: img.altText,
-          isPrimary: img.isPrimary,
-          sortOrder: img.sortOrder,
-        })),
-        files: p.files.map((f) => ({
-          id: f.id,
-          fileName: f.fileName,
-          fileType: f.fileType,
-          fileSizeBytes: Number(f.fileSizeBytes),
-          storagePath: f.storagePath,
-          isDownloadable: f.isDownloadable,
-          version: f.version,
-        })),
-        createdAt: p.createdAt.toISOString(),
-        updatedAt: p.updatedAt.toISOString(),
-      }));
+      const dbProducts = await prisma.product.findMany({
+        where,
+        include: {
+          category: true,
+          prices: true,
+          images: { orderBy: { sortOrder: "asc" } },
+          files: true,
+        },
+        orderBy:
+          sort === "popular"
+            ? { downloadCount: "desc" }
+            : { createdAt: "desc" },
+      });
+
+      if (dbProducts && dbProducts.length > 0) {
+        return dbProducts.map((p) => ({
+          id: p.id,
+          title: p.title,
+          slug: p.slug,
+          shortDescription: p.shortDescription,
+          fullDescription: p.fullDescription,
+          categoryId: p.categoryId,
+          category: p.category
+            ? {
+                id: p.category.id,
+                name: p.category.name,
+                slug: p.category.slug,
+              }
+            : undefined,
+          supportedPrinters: p.supportedPrinters,
+          printingSettings: p.printingSettings,
+          licenceType: p.licenceType,
+          isPublished: p.isPublished,
+          isFeatured: p.isFeatured,
+          viewCount: p.viewCount,
+          downloadCount: p.downloadCount,
+          prices: p.prices.map((pr) => ({
+            id: pr.id,
+            currency: pr.currency as CurrencyCode,
+            amount: Number(pr.amount),
+            compareAtAmount: pr.compareAtAmount ? Number(pr.compareAtAmount) : null,
+            isEnabled: pr.isEnabled,
+          })),
+          images: p.images.map((img) => ({
+            id: img.id,
+            url: img.url,
+            altText: img.altText,
+            isPrimary: img.isPrimary,
+            sortOrder: img.sortOrder,
+          })),
+          files: p.files.map((f) => ({
+            id: f.id,
+            fileName: f.fileName,
+            fileType: f.fileType,
+            fileSizeBytes: Number(f.fileSizeBytes),
+            storagePath: f.storagePath,
+            isDownloadable: f.isDownloadable,
+            version: f.version,
+          })),
+          createdAt: p.createdAt.toISOString(),
+          updatedAt: p.updatedAt.toISOString(),
+        }));
+      }
+    } catch (err) {
+      console.warn("Database query failed; using sample collection:", err);
     }
-  } catch (err) {
-    console.warn("Database query failed or not initialized; using built-in sample collection:", err);
   }
 
-  // Fallback to sample models
+  // Fast in-memory models response
   let results = SAMPLE_PRODUCTS.map(mapSampleProductToDTO);
 
   if (categorySlug) {
@@ -168,68 +172,72 @@ export async function getAllProducts({
 }
 
 export async function getProductBySlug(slug: string): Promise<ProductDTO | null> {
-  try {
-    const p = await prisma.product.findUnique({
-      where: { slug },
-      include: {
-        category: true,
-        prices: true,
-        images: { orderBy: { sortOrder: "asc" } },
-        files: true,
-      },
-    });
+  const dbOnline = await isDatabaseReachable();
 
-    if (p) {
-      return {
-        id: p.id,
-        title: p.title,
-        slug: p.slug,
-        shortDescription: p.shortDescription,
-        fullDescription: p.fullDescription,
-        categoryId: p.categoryId,
-        category: p.category
-          ? {
-              id: p.category.id,
-              name: p.category.name,
-              slug: p.category.slug,
-            }
-          : undefined,
-        supportedPrinters: p.supportedPrinters,
-        printingSettings: p.printingSettings,
-        licenceType: p.licenceType,
-        isPublished: p.isPublished,
-        isFeatured: p.isFeatured,
-        viewCount: p.viewCount,
-        downloadCount: p.downloadCount,
-        prices: p.prices.map((pr) => ({
-          id: pr.id,
-          currency: pr.currency as CurrencyCode,
-          amount: Number(pr.amount),
-          compareAtAmount: pr.compareAtAmount ? Number(pr.compareAtAmount) : null,
-          isEnabled: pr.isEnabled,
-        })),
-        images: p.images.map((img) => ({
-          id: img.id,
-          url: img.url,
-          altText: img.altText,
-          isPrimary: img.isPrimary,
-          sortOrder: img.sortOrder,
-        })),
-        files: p.files.map((f) => ({
-          id: f.id,
-          fileName: f.fileName,
-          fileType: f.fileType,
-          fileSizeBytes: Number(f.fileSizeBytes),
-          storagePath: f.storagePath,
-          isDownloadable: f.isDownloadable,
-          version: f.version,
-        })),
-        createdAt: p.createdAt.toISOString(),
-        updatedAt: p.updatedAt.toISOString(),
-      };
+  if (dbOnline) {
+    try {
+      const p = await prisma.product.findUnique({
+        where: { slug },
+        include: {
+          category: true,
+          prices: true,
+          images: { orderBy: { sortOrder: "asc" } },
+          files: true,
+        },
+      });
+
+      if (p) {
+        return {
+          id: p.id,
+          title: p.title,
+          slug: p.slug,
+          shortDescription: p.shortDescription,
+          fullDescription: p.fullDescription,
+          categoryId: p.categoryId,
+          category: p.category
+            ? {
+                id: p.category.id,
+                name: p.category.name,
+                slug: p.category.slug,
+              }
+            : undefined,
+          supportedPrinters: p.supportedPrinters,
+          printingSettings: p.printingSettings,
+          licenceType: p.licenceType,
+          isPublished: p.isPublished,
+          isFeatured: p.isFeatured,
+          viewCount: p.viewCount,
+          downloadCount: p.downloadCount,
+          prices: p.prices.map((pr) => ({
+            id: pr.id,
+            currency: pr.currency as CurrencyCode,
+            amount: Number(pr.amount),
+            compareAtAmount: pr.compareAtAmount ? Number(pr.compareAtAmount) : null,
+            isEnabled: pr.isEnabled,
+          })),
+          images: p.images.map((img) => ({
+            id: img.id,
+            url: img.url,
+            altText: img.altText,
+            isPrimary: img.isPrimary,
+            sortOrder: img.sortOrder,
+          })),
+          files: p.files.map((f) => ({
+            id: f.id,
+            fileName: f.fileName,
+            fileType: f.fileType,
+            fileSizeBytes: Number(f.fileSizeBytes),
+            storagePath: f.storagePath,
+            isDownloadable: f.isDownloadable,
+            version: f.version,
+          })),
+          createdAt: p.createdAt.toISOString(),
+          updatedAt: p.updatedAt.toISOString(),
+        };
+      }
+    } catch (err) {
+      console.warn("Database lookup by slug failed; using sample products:", err);
     }
-  } catch (err) {
-    console.warn("Database lookup by slug failed; falling back to sample products:", err);
   }
 
   const sample = SAMPLE_PRODUCTS.find((p) => p.slug === slug);
@@ -237,65 +245,66 @@ export async function getProductBySlug(slug: string): Promise<ProductDTO | null>
 }
 
 export async function getProductById(id: string): Promise<ProductDTO | null> {
-  try {
-    const p = await prisma.product.findUnique({
-      where: { id },
-      include: {
-        category: true,
-        prices: true,
-        images: { orderBy: { sortOrder: "asc" } },
-        files: true,
-      },
-    });
+  const dbOnline = await isDatabaseReachable();
 
-    if (p) {
-      return {
-        id: p.id,
-        title: p.title,
-        slug: p.slug,
-        shortDescription: p.shortDescription,
-        fullDescription: p.fullDescription,
-        categoryId: p.categoryId,
-        category: p.category ? { id: p.category.id, name: p.category.name, slug: p.category.slug } : undefined,
-        supportedPrinters: p.supportedPrinters,
-        printingSettings: p.printingSettings,
-        licenceType: p.licenceType,
-        isPublished: p.isPublished,
-        isFeatured: p.isFeatured,
-        viewCount: p.viewCount,
-        downloadCount: p.downloadCount,
-        prices: p.prices.map((pr) => ({
-          id: pr.id,
-          currency: pr.currency as CurrencyCode,
-          amount: Number(pr.amount),
-          compareAtAmount: pr.compareAtAmount ? Number(pr.compareAtAmount) : null,
-          isEnabled: pr.isEnabled,
-        })),
-        images: p.images.map((img) => ({
-          id: img.id,
-          url: img.url,
-          altText: img.altText,
-          isPrimary: img.isPrimary,
-          sortOrder: img.sortOrder,
-        })),
-        files: p.files.map((f) => ({
-          id: f.id,
-          fileName: f.fileName,
-          fileType: f.fileType,
-          fileSizeBytes: Number(f.fileSizeBytes),
-          storagePath: f.storagePath,
-          isDownloadable: f.isDownloadable,
-          version: f.version,
-        })),
-        createdAt: p.createdAt.toISOString(),
-        updatedAt: p.updatedAt.toISOString(),
-      };
-    }
-  } catch (err) {
-    // fallback
+  if (dbOnline) {
+    try {
+      const p = await prisma.product.findUnique({
+        where: { id },
+        include: {
+          category: true,
+          prices: true,
+          images: { orderBy: { sortOrder: "asc" } },
+          files: true,
+        },
+      });
+
+      if (p) {
+        return {
+          id: p.id,
+          title: p.title,
+          slug: p.slug,
+          shortDescription: p.shortDescription,
+          fullDescription: p.fullDescription,
+          categoryId: p.categoryId,
+          category: p.category ? { id: p.category.id, name: p.category.name, slug: p.category.slug } : undefined,
+          supportedPrinters: p.supportedPrinters,
+          printingSettings: p.printingSettings,
+          licenceType: p.licenceType,
+          isPublished: p.isPublished,
+          isFeatured: p.isFeatured,
+          viewCount: p.viewCount,
+          downloadCount: p.downloadCount,
+          prices: p.prices.map((pr) => ({
+            id: pr.id,
+            currency: pr.currency as CurrencyCode,
+            amount: Number(pr.amount),
+            compareAtAmount: pr.compareAtAmount ? Number(pr.compareAtAmount) : null,
+            isEnabled: pr.isEnabled,
+          })),
+          images: p.images.map((img) => ({
+            id: img.id,
+            url: img.url,
+            altText: img.altText,
+            isPrimary: img.isPrimary,
+            sortOrder: img.sortOrder,
+          })),
+          files: p.files.map((f) => ({
+            id: f.id,
+            fileName: f.fileName,
+            fileType: f.fileType,
+            fileSizeBytes: Number(f.fileSizeBytes),
+            storagePath: f.storagePath,
+            isDownloadable: f.isDownloadable,
+            version: f.version,
+          })),
+          createdAt: p.createdAt.toISOString(),
+          updatedAt: p.updatedAt.toISOString(),
+        };
+      }
+    } catch (err) {}
   }
 
   const sample = SAMPLE_PRODUCTS.find((p) => p.id === id);
   return sample ? mapSampleProductToDTO(sample) : null;
 }
-

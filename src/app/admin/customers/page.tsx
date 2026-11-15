@@ -3,7 +3,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/authOptions";
 import { redirect } from "next/navigation";
 import { AdminNav } from "@/components/admin/AdminNav";
-import prisma from "@/lib/database/prisma";
+import prisma, { isDatabaseReachable } from "@/lib/database/prisma";
+import { getAllLocalDevUsers } from "@/lib/database/userStore";
 import { Users, Shield, UserX, CheckCircle, Search } from "lucide-react";
 
 export default async function AdminCustomersPage() {
@@ -14,22 +15,39 @@ export default async function AdminCustomersPage() {
   }
 
   let customers: any[] = [];
-  try {
-    customers = await prisma.user.findMany({
-      where: { role: "CUSTOMER" },
-      include: {
-        _count: {
-          select: {
-            orders: true,
-            downloads: true,
+  const dbOnline = await isDatabaseReachable();
+
+  if (dbOnline) {
+    try {
+      customers = await prisma.user.findMany({
+        where: { role: "CUSTOMER" },
+        include: {
+          _count: {
+            select: {
+              orders: true,
+              downloads: true,
+            },
           },
         },
-      },
-      orderBy: { createdAt: "desc" },
-    });
-  } catch (e) {
-    // Demo customers fallback
+        orderBy: { createdAt: "desc" },
+      });
+    } catch (e) {
+      console.warn("Prisma customers fetch error:", e);
+    }
+  }
+
+  if (customers.length === 0) {
+    const devUsers = getAllLocalDevUsers().filter((u) => u.role === "CUSTOMER");
     customers = [
+      ...devUsers.map((u) => ({
+        id: u.id,
+        name: u.name,
+        email: u.email,
+        country: u.country,
+        isBlocked: !!u.isBlocked,
+        createdAt: u.createdAt,
+        _count: { orders: 1, downloads: 2 },
+      })),
       {
         id: "c_1",
         name: "Marcus Aurelius",

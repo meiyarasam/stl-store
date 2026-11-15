@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { verifyWebhookSignature } from "@/lib/razorpay/client";
-import prisma from "@/lib/database/prisma";
+import prisma, { isDatabaseReachable } from "@/lib/database/prisma";
 import { markOrderPaidAndGenerateDownloads } from "@/lib/database/orders";
+import { getLocalDevOrder } from "@/lib/database/userStore";
 
 export async function POST(req: Request) {
   try {
@@ -43,9 +44,22 @@ export async function POST(req: Request) {
       }
 
       // Find internal order by razorpayOrderId
-      const order = await prisma.order.findUnique({
-        where: { razorpayOrderId },
-      });
+      const dbOnline = await isDatabaseReachable();
+      let order: any = null;
+
+      if (dbOnline) {
+        try {
+          order = await prisma.order.findUnique({
+            where: { razorpayOrderId },
+          });
+        } catch (dbErr) {
+          console.warn("Webhook DB lookup error:", dbErr);
+        }
+      }
+
+      if (!order) {
+        order = getLocalDevOrder(razorpayOrderId);
+      }
 
       if (order && order.paymentStatus !== "PAID") {
         await markOrderPaidAndGenerateDownloads({
@@ -61,10 +75,13 @@ export async function POST(req: Request) {
       const razorpayOrderId = paymentEntity?.order_id;
 
       if (razorpayOrderId) {
-        await prisma.order.updateMany({
-          where: { razorpayOrderId, paymentStatus: "PENDING" },
-          data: { paymentStatus: "FAILED" },
-        }).catch(() => {});
+        const dbOnline = await isDatabaseReachable();
+        if (dbOnline) {
+          await prisma.order.updateMany({
+            where: { razorpayOrderId, paymentStatus: "PENDING" },
+            data: { paymentStatus: "FAILED" },
+          }).catch(() => {});
+        }
       }
     }
 

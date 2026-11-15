@@ -1,0 +1,46 @@
+[
+  {
+    "id": "usr_admin_default",
+    "name": "STLForge Administrator",
+    "email": "admin@stlforge.com",
+    "passwordHash": "$2a$10$JZh3NH2C8i//BcXpQwTg8uYC20Og7DKky8sqRHVarQ3DFXm54jdKO",
+    "country": "US",
+    "phoneCountryCode": "+1",
+    "phone": "5551234567",
+    "role": "ADMIN",
+    "createdAt": "2026-11-15T20:02:51.966Z"
+  },
+  {
+    "id": "usr_1794772972332_ew6hw",
+    "name": "Meiyarasan Test",
+    "email": "test_1794772971622@example.com",
+    "passwordHash": "$2a$12$UOgXRZMTD6B3wNfqaJqHcOIfKNztXojmC4cftYA139VUDm6AHShxi",
+    "country": "IN",
+    "phoneCountryCode": "+91",
+    "phone": "6374424989",
+    "role": "CUSTOMER",
+    "createdAt": "2026-11-15T20:02:52.332Z"
+  },
+  {
+    "id": "usr_1794772978908_lin7g",
+    "name": "Meiyarasan Speed",
+    "email": "speed_1794772978503@example.com",
+    "passwordHash": "$2a$12$R06.8P0IdRscRcE/sRuf7en5g3YTmcWIT2ZuKqMZGU5qVBjkpVG2S",
+    "country": "IN",
+    "phoneCountryCode": "+91",
+    "phone": "6374424989",
+    "role": "CUSTOMER",
+    "createdAt": "2026-11-15T20:02:58.908Z"
+  },
+  {
+    "id": "usr_1794773374841_n971d",
+    "name": "meiyarasan",
+    "email": "meiyarasanmeiyarasan3@gmail.com",
+    "passwordHash": "$2a$12$GWkMxMd.iXW9HNpM4vFC2OXJd6AWLmHHHzXSkABnVT2yVI8AfDNTq",
+    "country": "IN",
+    "phoneCountryCode": "+91",
+    "phone": "6374424989",
+    "role": "CUSTOMER",
+    "createdAt": "2026-11-15T20:09:34.841Z"
+  }
+]

@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/authOptions";
-import prisma from "@/lib/database/prisma";
+import prisma, { isDatabaseReachable } from "@/lib/database/prisma";
 import { SAMPLE_PRODUCTS } from "@/lib/data/sampleProducts";
+import { getAllLocalDevOrders, getAllLocalDevUsers } from "@/lib/database/userStore";
 
 export const dynamic = "force-dynamic";
 
@@ -24,25 +25,36 @@ export async function GET() {
     let totalProducts = SAMPLE_PRODUCTS.length;
     let pendingPayments = 3;
 
-    try {
-      const [orderCount, customerCount, productCount, paidOrders] = await Promise.all([
-        prisma.order.count(),
-        prisma.user.count({ where: { role: "CUSTOMER" } }),
-        prisma.product.count(),
-        prisma.order.findMany({
-          where: { paymentStatus: "PAID" },
-          select: { total: true, currency: true, createdAt: true },
-        }),
-      ]);
+    const dbOnline = await isDatabaseReachable();
 
-      if (orderCount > 0) {
-        totalOrders = orderCount;
-        totalCustomers = customerCount || 12;
-        totalProducts = productCount || SAMPLE_PRODUCTS.length;
-        totalRevenue = paidOrders.reduce((acc, curr) => acc + Number(curr.total), 0);
+    if (dbOnline) {
+      try {
+        const [orderCount, customerCount, productCount, paidOrders] = await Promise.all([
+          prisma.order.count(),
+          prisma.user.count({ where: { role: "CUSTOMER" } }),
+          prisma.product.count(),
+          prisma.order.findMany({
+            where: { paymentStatus: "PAID" },
+            select: { total: true, currency: true, createdAt: true },
+          }),
+        ]);
+
+        if (orderCount > 0) {
+          totalOrders = orderCount;
+          totalCustomers = customerCount || 12;
+          totalProducts = productCount || SAMPLE_PRODUCTS.length;
+          totalRevenue = paidOrders.reduce((acc, curr) => acc + Number(curr.total), 0);
+        }
+      } catch (dbErr) {
+        console.warn("Analytics database calculation fallback:", dbErr);
       }
-    } catch (dbErr) {
-      console.warn("Analytics database calculation fallback:", dbErr);
+    } else {
+      const devOrders = getAllLocalDevOrders();
+      const devUsers = getAllLocalDevUsers().filter((u) => u.role === "CUSTOMER");
+      const paidDevOrders = devOrders.filter((o) => o.paymentStatus === "PAID");
+      totalOrders = devOrders.length;
+      totalCustomers = Math.max(devUsers.length, 3);
+      totalRevenue = paidDevOrders.reduce((sum, o) => sum + Number(o.total || 0), 0);
     }
 
     // Chart data for Recharts

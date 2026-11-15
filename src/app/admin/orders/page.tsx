@@ -4,7 +4,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/authOptions";
 import { redirect } from "next/navigation";
 import { AdminNav } from "@/components/admin/AdminNav";
-import prisma from "@/lib/database/prisma";
+import prisma, { isDatabaseReachable } from "@/lib/database/prisma";
+import { getAllLocalDevOrders } from "@/lib/database/userStore";
 import { formatPrice } from "@/lib/currency/currencies";
 import { CurrencyCode } from "@/types";
 import { ShieldCheck, Search, Filter } from "lucide-react";
@@ -21,64 +22,32 @@ export default async function AdminOrdersPage({
   }
 
   let orders: any[] = [];
-  try {
-    const where: any = {};
-    if (searchParams.status) where.paymentStatus = searchParams.status;
-    if (searchParams.search) {
-      where.OR = [
-        { orderNumber: { contains: searchParams.search, mode: "insensitive" } },
-        { customerEmail: { contains: searchParams.search, mode: "insensitive" } },
-      ];
-    }
+  const dbOnline = await isDatabaseReachable();
 
-    orders = await prisma.order.findMany({
-      where,
-      include: { items: true },
-      orderBy: { createdAt: "desc" },
-    });
-  } catch (e) {
-    // Fallback demo orders for dev mode
-    orders = [
-      {
-        id: "ord_101",
-        orderNumber: "STL-892144-129",
-        customerName: "Alex Vance",
-        customerEmail: "alex@blackmesa.org",
-        customerCountry: "US",
-        currency: "USD",
-        total: 14.99,
-        paymentStatus: "PAID",
-        paymentMethod: "Razorpay Standard",
-        createdAt: new Date().toISOString(),
-        items: [{ id: "i1", productTitle: "Cyberpunk Ronin Collectible Bust", quantity: 1, total: 14.99 }],
-      },
-      {
-        id: "ord_102",
-        orderNumber: "STL-742911-884",
-        customerName: "Rahul Sharma",
-        customerEmail: "rahul@techlab.in",
-        customerCountry: "IN",
-        currency: "INR",
-        total: 599.0,
-        paymentStatus: "PAID",
-        paymentMethod: "UPI Dynamic QR",
-        createdAt: new Date(Date.now() - 3600000).toISOString(),
-        items: [{ id: "i2", productTitle: "Print-in-Place Mechanical Iris Box", quantity: 1, total: 599.0 }],
-      },
-      {
-        id: "ord_103",
-        orderNumber: "STL-661209-340",
-        customerName: "Klaus Schmidt",
-        customerEmail: "klaus@hamburg.de",
-        customerCountry: "DE",
-        currency: "EUR",
-        total: 10.99,
-        paymentStatus: "PAID",
-        paymentMethod: "Razorpay International Card",
-        createdAt: new Date(Date.now() - 7200000).toISOString(),
-        items: [{ id: "i3", productTitle: "Articulated Crystal Dragon (Print-in-Place)", quantity: 1, total: 10.99 }],
-      },
-    ];
+  if (dbOnline) {
+    try {
+      const where: any = {};
+      if (searchParams.status) where.paymentStatus = searchParams.status;
+      if (searchParams.search) {
+        where.OR = [
+          { orderNumber: { contains: searchParams.search, mode: "insensitive" } },
+          { customerEmail: { contains: searchParams.search, mode: "insensitive" } },
+        ];
+      }
+
+      orders = await prisma.order.findMany({
+        where,
+        include: { items: true },
+        orderBy: { createdAt: "desc" },
+      });
+    } catch (e) {
+      console.warn("Prisma orders fetch error:", e);
+    }
+  }
+
+  if (orders.length === 0) {
+    const devOrders = getAllLocalDevOrders();
+    orders = devOrders;
   }
 
   return (

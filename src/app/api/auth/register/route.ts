@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import prisma from "@/lib/database/prisma";
+import prisma, { isDatabaseReachable } from "@/lib/database/prisma";
 import { registerSchema } from "@/lib/validation/schemas";
-import { getLocalDevUser, saveLocalDevUser } from "@/lib/database/userStore";
+import { getLocalDevUser, saveLocalDevUser, StoredUser } from "@/lib/database/userStore";
 
 export async function POST(req: Request) {
   try {
@@ -10,15 +10,21 @@ export async function POST(req: Request) {
     const validatedData = registerSchema.parse(body);
 
     const email = validatedData.email.toLowerCase().trim();
+    const dbOnline = await isDatabaseReachable();
 
     // Check if user already exists
     let existingUser = null;
-    try {
-      existingUser = await prisma.user.findUnique({
-        where: { email },
-      });
-    } catch (dbErr) {
-      console.warn("Database connection notice on user lookup; checking local dev store:", dbErr);
+    if (dbOnline) {
+      try {
+        existingUser = await prisma.user.findUnique({
+          where: { email },
+        });
+      } catch (dbErr) {
+        console.warn("Database lookup warning:", dbErr);
+      }
+    }
+
+    if (!existingUser) {
       existingUser = getLocalDevUser(email);
     }
 
@@ -33,30 +39,35 @@ export async function POST(req: Request) {
     const passwordHash = await bcrypt.hash(validatedData.password, 12);
 
     let newUser = null;
-    try {
-      newUser = await prisma.user.create({
-        data: {
-          name: validatedData.name.trim(),
-          email,
-          passwordHash,
-          country: validatedData.country,
-          phoneCountryCode: validatedData.phoneCountryCode,
-          phone: validatedData.phone,
-          role: "CUSTOMER",
-          emailVerified: new Date(),
-        },
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          role: true,
-          country: true,
-        },
-      });
-    } catch (createErr) {
-      console.warn("Database offline during user registration; saving to development store:", createErr);
+    if (dbOnline) {
+      try {
+        newUser = await prisma.user.create({
+          data: {
+            name: validatedData.name.trim(),
+            email,
+            passwordHash,
+            country: validatedData.country,
+            phoneCountryCode: validatedData.phoneCountryCode,
+            phone: validatedData.phone,
+            role: "CUSTOMER",
+            emailVerified: new Date(),
+          },
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+            country: true,
+          },
+        });
+      } catch (createErr) {
+        console.warn("Prisma user creation error, falling back to local file store:", createErr);
+      }
+    }
+
+    if (!newUser) {
       const devId = `usr_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-      const devUser = {
+      const devUser: StoredUser = {
         id: devId,
         name: validatedData.name.trim(),
         email,
@@ -64,8 +75,8 @@ export async function POST(req: Request) {
         country: validatedData.country,
         phoneCountryCode: validatedData.phoneCountryCode,
         phone: validatedData.phone,
-        role: "CUSTOMER" as const,
-        createdAt: new Date(),
+        role: "CUSTOMER",
+        createdAt: new Date().toISOString(),
       };
       saveLocalDevUser(devUser);
 

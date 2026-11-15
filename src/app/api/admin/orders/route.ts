@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/authOptions";
-import prisma from "@/lib/database/prisma";
+import prisma, { isDatabaseReachable } from "@/lib/database/prisma";
+import { getAllLocalDevOrders } from "@/lib/database/userStore";
 
 export const dynamic = "force-dynamic";
 
@@ -16,29 +17,54 @@ export async function GET(req: Request) {
     const status = searchParams.get("status") || undefined;
     const search = searchParams.get("search") || undefined;
 
-    const where: any = {};
+    const dbOnline = await isDatabaseReachable();
+    if (dbOnline) {
+      try {
+        const where: any = {};
+        if (status) {
+          where.paymentStatus = status;
+        }
+        if (search) {
+          where.OR = [
+            { orderNumber: { contains: search, mode: "insensitive" } },
+            { customerEmail: { contains: search, mode: "insensitive" } },
+            { customerName: { contains: search, mode: "insensitive" } },
+          ];
+        }
+
+        const orders = await prisma.order.findMany({
+          where,
+          include: {
+            items: true,
+            payments: true,
+          },
+          orderBy: { createdAt: "desc" },
+          take: 100,
+        });
+
+        if (orders.length > 0) {
+          return NextResponse.json({ orders });
+        }
+      } catch (err) {
+        console.warn("Prisma orders query error:", err);
+      }
+    }
+
+    let devOrders = getAllLocalDevOrders();
     if (status) {
-      where.paymentStatus = status;
+      devOrders = devOrders.filter((o) => o.paymentStatus === status);
     }
     if (search) {
-      where.OR = [
-        { orderNumber: { contains: search, mode: "insensitive" } },
-        { customerEmail: { contains: search, mode: "insensitive" } },
-        { customerName: { contains: search, mode: "insensitive" } },
-      ];
+      const q = search.toLowerCase();
+      devOrders = devOrders.filter(
+        (o) =>
+          o.orderNumber.toLowerCase().includes(q) ||
+          o.customerEmail.toLowerCase().includes(q) ||
+          o.customerName.toLowerCase().includes(q)
+      );
     }
 
-    const orders = await prisma.order.findMany({
-      where,
-      include: {
-        items: true,
-        payments: true,
-      },
-      orderBy: { createdAt: "desc" },
-      take: 100,
-    });
-
-    return NextResponse.json({ orders });
+    return NextResponse.json({ orders: devOrders });
   } catch (err: any) {
     return NextResponse.json({ orders: [] });
   }

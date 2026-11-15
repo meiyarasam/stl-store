@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { Layers, ShieldCheck, Download, Sparkles, Mail } from "lucide-react";
+import { Layers, ShieldCheck, Download, Sparkles, Mail, Lock } from "lucide-react";
 
 export function Footer() {
   return (
@@ -106,6 +106,15 @@ export function Footer() {
                   Frequently Asked Questions
                 </Link>
               </li>
+              <li className="pt-1">
+                <Link
+                  href="/admin/login"
+                  className="hover:text-white transition-colors inline-flex items-center gap-1.5 text-amber-400 font-semibold"
+                >
+                  <Lock className="w-3.5 h-3.5" />
+                  Admin Login
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -146,7 +155,17 @@ export function Footer() {
 
         {/* Payment & Verification Banner */}
         <div className="mt-12 pt-8 border-t border-zinc-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-500">
-          <p>© {new Date().getFullYear()} STLForge. All rights reserved. Precision 3D Digital Assets.</p>
+          <div className="flex flex-wrap items-center gap-4">
+            <p>© {new Date().getFullYear()} STLForge. All rights reserved. Precision 3D Digital Assets.</p>
+            <Link
+              href="/admin/login"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white hover:border-zinc-700 transition-colors font-semibold text-[11px]"
+            >
+              <Lock className="w-3 h-3 text-amber-400" />
+              Admin Portal
+            </Link>
+          </div>
+
           <div className="flex items-center gap-3">
             <span className="font-medium text-zinc-400">Payment Gateway:</span>
             <span className="px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-300 font-mono">
@@ -164,4 +183,3 @@ export function Footer() {
     </footer>
   );
 }
-

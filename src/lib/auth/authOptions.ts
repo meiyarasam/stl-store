@@ -1,7 +1,7 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
-import prisma from "@/lib/database/prisma";
+import prisma, { isDatabaseReachable } from "@/lib/database/prisma";
 import { getLocalDevUser } from "@/lib/database/userStore";
 
 export const authOptions: NextAuthOptions = {
@@ -20,14 +20,17 @@ export const authOptions: NextAuthOptions = {
         const email = credentials.email.toLowerCase().trim();
 
         try {
-          // Attempt database lookup
+          // Attempt database lookup if online
+          const dbOnline = await isDatabaseReachable();
           let user = null;
-          try {
-            user = await prisma.user.findUnique({
-              where: { email },
-            });
-          } catch (dbError) {
-            console.warn("Database connection notice on user authorization:", dbError);
+          if (dbOnline) {
+            try {
+              user = await prisma.user.findUnique({
+                where: { email },
+              });
+            } catch (dbError) {
+              console.warn("Database connection notice on user authorization:", dbError);
+            }
           }
 
           if (!user) {
