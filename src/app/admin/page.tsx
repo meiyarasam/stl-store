@@ -5,15 +5,8 @@ import { authOptions } from "@/lib/auth/authOptions";
 import { redirect } from "next/navigation";
 import { AdminNav } from "@/components/admin/AdminNav";
 import { AnalyticsCharts } from "@/components/admin/AnalyticsCharts";
-import {
-  DollarSign,
-  ShoppingBag,
-  Users,
-  Box,
-  TrendingUp,
-  ArrowRight,
-  Plus,
-} from "lucide-react";
+import { DashboardMetrics } from "@/components/admin/DashboardMetrics";
+import { Plus, ArrowRight } from "lucide-react";
 import { SAMPLE_PRODUCTS } from "@/lib/data/sampleProducts";
 
 export default async function AdminDashboardPage() {
@@ -85,62 +78,8 @@ export default async function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* Top KPI Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-white border border-zinc-200 rounded-xl p-5 shadow-sm space-y-2">
-            <div className="flex items-center justify-between text-zinc-500">
-              <span className="text-xs font-semibold uppercase tracking-wider">
-                Total Revenue
-              </span>
-              <DollarSign className="w-4 h-4 text-emerald-600" />
-            </div>
-            <div className="text-2xl font-black text-zinc-950 font-mono">
-              ${summary.totalRevenueUSD.toLocaleString()}
-            </div>
-            <div className="flex items-center text-[11px] text-emerald-600 font-semibold gap-1">
-              <TrendingUp className="w-3 h-3" /> +18.4% from last month
-            </div>
-          </div>
-
-          <div className="bg-white border border-zinc-200 rounded-xl p-5 shadow-sm space-y-2">
-            <div className="flex items-center justify-between text-zinc-500">
-              <span className="text-xs font-semibold uppercase tracking-wider">
-                Total Orders
-              </span>
-              <ShoppingBag className="w-4 h-4 text-zinc-500" />
-            </div>
-            <div className="text-2xl font-black text-zinc-950 font-mono">
-              {summary.totalOrders}
-            </div>
-            <p className="text-[11px] text-zinc-400">100% verified Razorpay payments</p>
-          </div>
-
-          <div className="bg-white border border-zinc-200 rounded-xl p-5 shadow-sm space-y-2">
-            <div className="flex items-center justify-between text-zinc-500">
-              <span className="text-xs font-semibold uppercase tracking-wider">
-                Registered Customers
-              </span>
-              <Users className="w-4 h-4 text-zinc-500" />
-            </div>
-            <div className="text-2xl font-black text-zinc-950 font-mono">
-              {summary.totalCustomers}
-            </div>
-            <p className="text-[11px] text-zinc-400">Across 16 supported countries</p>
-          </div>
-
-          <div className="bg-white border border-zinc-200 rounded-xl p-5 shadow-sm space-y-2">
-            <div className="flex items-center justify-between text-zinc-500">
-              <span className="text-xs font-semibold uppercase tracking-wider">
-                Cataloged Products
-              </span>
-              <Box className="w-4 h-4 text-zinc-500" />
-            </div>
-            <div className="text-2xl font-black text-zinc-950 font-mono">
-              {summary.totalProducts}
-            </div>
-            <p className="text-[11px] text-zinc-400">Watertight STL packages</p>
-          </div>
-        </div>
+        {/* Top KPI Cards Component */}
+        <DashboardMetrics summary={summary} />
 
         {/* Charts & Graphs */}
         <AnalyticsCharts

@@ -1,0 +1,60 @@
+"use client";
+
+import React from "react";
+import Link from "next/link";
+import { ArrowRight, ShieldCheck } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+interface CartSummaryProps {
+  cartTotal: number;
+  formatAmount: (amount: number) => string;
+  currency: string;
+}
+
+export function CartSummary({ cartTotal, formatAmount, currency }: CartSummaryProps) {
+  return (
+    <div className="bg-white border border-zinc-200 rounded-xl p-6 space-y-6 shadow-sm sticky top-24">
+      <h2 className="text-base font-black text-zinc-950 tracking-tight font-display border-b border-zinc-100 pb-3">
+        Order Summary
+      </h2>
+
+      <div className="space-y-3 text-xs">
+        <div className="flex justify-between text-zinc-600">
+          <span>Digital Subtotal</span>
+          <span className="font-mono font-medium text-zinc-900">{formatAmount(cartTotal)}</span>
+        </div>
+        <div className="flex justify-between text-zinc-600">
+          <span>Taxes & Processing</span>
+          <span className="font-mono text-emerald-600 font-medium">Included</span>
+        </div>
+        <div className="flex justify-between text-zinc-600">
+          <span>Delivery</span>
+          <span className="text-emerald-600 font-medium">Instant Download</span>
+        </div>
+        <div className="pt-3 border-t border-zinc-200 flex justify-between items-baseline">
+          <span className="text-sm font-bold text-zinc-950">Total Amount</span>
+          <span className="text-2xl font-black text-zinc-950 font-mono">
+            {formatAmount(cartTotal)}
+          </span>
+        </div>
+        <p className="text-[10px] text-zinc-400 text-right">
+          Billed in {currency}. No hidden charges.
+        </p>
+      </div>
+
+      <div className="space-y-3 pt-2">
+        <Link href="/checkout" className="block w-full">
+          <Button variant="primary" size="lg" className="w-full text-xs font-bold gap-2">
+            Proceed to Secure Checkout <ArrowRight className="w-4 h-4" />
+          </Button>
+        </Link>
+
+        <div className="flex items-center justify-center gap-2 text-[11px] text-zinc-500 pt-2">
+          <ShieldCheck className="w-4 h-4 text-emerald-600" />
+          <span>Encrypted Razorpay Checkout</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+export default CartSummary;

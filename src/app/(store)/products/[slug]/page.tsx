@@ -1,10 +1,10 @@
 import React from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getProductBySlug, getAllProducts } from "@/lib/database/products";
+import { getProductBySlug, getAllProducts } from "@/services/product.service";
 import { ProductGallery } from "@/components/products/ProductGallery";
 import { PrintSpecsTable } from "@/components/products/PrintSpecsTable";
-import { ProductPurchaseCard } from "./ProductPurchaseCard";
+import { ProductPurchaseCard } from "@/components/products/ProductPurchaseCard";
 import { ProductGrid } from "@/components/products/ProductGrid";
 import { Download, Eye, Layers } from "lucide-react";
 

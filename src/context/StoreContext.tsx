@@ -22,6 +22,7 @@ interface StoreContextType {
   cart: CartItem[];
   addToCart: (product: ProductDTO, quantity?: number) => void;
   removeFromCart: (productId: string) => void;
+  updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
   cartTotal: number;
   cartCount: number;
@@ -138,6 +139,18 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setCart((prev) => prev.filter((item) => item.product.id !== productId));
   };
 
+  const updateQuantity = (productId: string, quantity: number) => {
+    if (quantity <= 0) {
+      removeFromCart(productId);
+      return;
+    }
+    setCart((prev) =>
+      prev.map((item) =>
+        item.product.id === productId ? { ...item, quantity } : item
+      )
+    );
+  };
+
   const clearCart = () => {
     setCart([]);
   };
@@ -161,6 +174,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         cart,
         addToCart,
         removeFromCart,
+        updateQuantity,
         clearCart,
         cartTotal,
         cartCount,

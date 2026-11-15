@@ -4,8 +4,8 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useStore } from "@/context/StoreContext";
-import { Trash2, ArrowRight, ShoppingBag, ShieldCheck, ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Trash2, ArrowRight, ShoppingBag, ArrowLeft } from "lucide-react";
+import { CartSummary } from "@/components/cart/CartSummary";
 
 export default function CartPage() {
   const { cart, removeFromCart, clearCart, cartTotal, formatAmount, currency, getProductPrice } = useStore();
@@ -114,44 +114,9 @@ export default function CartPage() {
           </div>
         </div>
 
-        {/* Order Summary */}
-        <div className="lg:col-span-4 bg-white border border-zinc-200 rounded-xl p-6 shadow-sm space-y-6">
-          <h2 className="text-lg font-bold text-zinc-950">Order Summary</h2>
-
-          <div className="space-y-3 text-sm">
-            <div className="flex justify-between text-zinc-600">
-              <span>Subtotal ({currency})</span>
-              <span className="font-semibold text-zinc-950 font-mono">
-                {formatAmount(cartTotal)}
-              </span>
-            </div>
-            <div className="flex justify-between text-zinc-600">
-              <span>Digital Delivery</span>
-              <span className="font-medium text-emerald-600">Instant (Free)</span>
-            </div>
-            <div className="flex justify-between text-zinc-600">
-              <span>Taxes</span>
-              <span className="text-zinc-400">Included</span>
-            </div>
-            <div className="pt-3 border-t border-zinc-200 flex justify-between text-base font-black text-zinc-950">
-              <span>Estimated Total</span>
-              <span className="font-mono">{formatAmount(cartTotal)}</span>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <Link
-              href="/checkout"
-              className="w-full flex items-center justify-center gap-2 bg-zinc-950 text-white font-bold py-3.5 px-6 rounded-lg hover:bg-zinc-800 transition-colors shadow-md text-sm"
-            >
-              Proceed to Checkout <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
-
-          <div className="pt-4 border-t border-zinc-100 flex items-center gap-2 text-xs text-zinc-500">
-            <ShieldCheck className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-            <span>Official Razorpay Standard Checkout & Encrypted Downloads</span>
-          </div>
+        {/* Order Summary Component */}
+        <div className="lg:col-span-4">
+          <CartSummary cartTotal={cartTotal} formatAmount={formatAmount} currency={currency} />
         </div>
       </div>
     </div>

@@ -80,9 +80,11 @@ export interface CartItemDTO {
   productId: string;
   product: ProductDTO;
   quantity: number;
-  selectedPrice: number;
-  currency: CurrencyCode;
+  selectedPrice?: number;
+  currency?: CurrencyCode;
 }
+
+export type CartItem = CartItemDTO;
 
 export interface OrderDTO {
   id: string;

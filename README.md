@@ -3,7 +3,7 @@
 > **"Design. Download. Create."**  
 > A production-grade, international e-commerce platform engineered specifically for discovering, purchasing, and securely downloading high-precision 3D-printable STL files.
 
-Inspired by Ko-fi's digital product store experience, STLForge implements an enterprise-grade full-stack architecture featuring multi-currency native pricing (INR, USD, EUR, GBP, CAD, AUD, JPY), Razorpay standard checkout, dynamic UPI QR payments, signed cryptographic file delivery via Supabase Storage, customer dashboards, and a complete admin management portal.
+Inspired by Ko-fi's digital product store experience, STLForge implements an enterprise-grade full-stack architecture featuring multi-currency native pricing (`INR`, `USD`, `EUR`, `GBP`, `CAD`, `AUD`, `JPY`), Razorpay standard checkout, dynamic UPI QR payments, signed cryptographic file delivery via Supabase Storage, self-serve customer dashboards, and a complete admin management portal.
 
 ---
 
@@ -13,270 +13,258 @@ STLForge bridges modern digital manufacturing with international e-commerce. Eve
 
 ### Key Capabilities
 - **Universal Multi-Currency System:** Country-based automatic selection with explicit per-product currency configuration (not lossy exchange rate conversions).
-- **Authorized Razorpay Checkout:** Server-side Orders API with HMAC SHA-256 signature verification and webhook idempotency.
+- **Authorized Razorpay Checkout:** Server-side Orders API with HMAC-SHA256 signature verification and webhook idempotency.
 - **Dynamic UPI QR Support:** Dynamic QR code generation for eligible Indian buyers.
 - **Secure Digital Downloads:** Cryptographic signed URLs generated via private Supabase Storage buckets with strict 300s expiry windows and download counters.
 - **Customer & Admin Dashboards:** Self-serve customer order and download management alongside real-time admin analytics powered by Recharts.
+- **Resilient Fallback Mode:** Zero-latency connectivity guards (`isDatabaseReachable`) that automatically serve persistent local models when external databases are offline.
 
 ---
 
-## 2. Technology Stack
+## 2. Features
+
+- **Public Marketplace:**
+  - Modern, minimalist charcoal & neutral aesthetic (no flashy gradients or fake counters).
+  - High-performance responsive product grid with instant search, category navigation pills, and sort filters.
+  - Comprehensive 3D print specifications: supported printers (FDM, SLA, Resin), nozzle sizes, infill percentages, layer heights, and personal licence terms.
+- **Customer Authentication:**
+  - Secure bcrypt password hashing.
+  - Interactive password visibility toggles (eye icons) on registration, login, and admin login forms.
+  - Session preservation across "Buy Now" redirects without cart abandonment.
+- **Shopping Cart & Checkout:**
+  - Persistent cart state with drawer and dedicated cart summary page.
+  - Authoritative server-side pricing calculations (never trusts frontend totals).
+  - Support for international card payments, Indian netbanking, and UPI.
+- **Admin Management Portal:**
+  - Real-time revenue charts (daily revenue curves in USD/INR, geographic distributions).
+  - Product catalog management and model creation.
+  - Order audit logs with payment IDs and customer details.
+  - Customer directory with account standing controls.
+
+---
+
+## 3. Technology Stack
 
 ### Frontend
-- **Framework:** Next.js 14 App Router
-- **Language:** TypeScript
-- **Styling:** Tailwind CSS (Custom charcoal, neutral & slate palette)
-- **Component Primitives:** shadcn/ui design patterns
+- **Framework:** Next.js 14 (App Router)
+- **Language:** TypeScript 5
+- **Styling:** Tailwind CSS 3
 - **Icons:** Lucide React
-- **Analytics & Data Visualizations:** Recharts
+- **Analytics Visualizations:** Recharts
 - **QR Code Engine:** QRCode.js
 
-### Backend & API
-- **API Architecture:** Next.js Route Handlers
+### Backend & Architecture
+- **API Routing:** Next.js Route Handlers (Serverless)
 - **Validation:** Zod schemas
-- **Authentication:** Auth.js / NextAuth (Credentials provider with bcrypt password hashing)
+- **Authentication:** Auth.js / NextAuth v4 (JWT session strategy, Credentials provider)
 - **Database ORM:** Prisma ORM with PostgreSQL
 
-### Infrastructure & Services
-- **Database:** PostgreSQL (Supabase / Neon / AWS RDS)
-- **Private Storage:** Supabase Storage (Private buckets for STL/ZIP archives; public bucket for previews)
+### Infrastructure & External Services
+- **Database:** PostgreSQL (Supabase Connection Pooler with PgBouncer)
+- **Storage:** Supabase Storage (Private bucket for STL/ZIP archives; public bucket for previews)
 - **Payment Gateway:** Razorpay Standard Checkout & Orders API
   - Merchant Payment Profile: [https://razorpay.me/@meiyarasan](https://razorpay.me/@meiyarasan)
 - **Transactional Email:** Resend
-- **Hosting:** Vercel
+- **Hosting Platform:** Vercel
 
 ---
 
-## 3. Architecture & Data Flow
+## 4. Folder Structure
 
 ```
-[ Customer Browser ]
-       │
-       ▼
-[ Next.js App Router (Storefront / Checkout / Dashboards) ]
-       │
-       ├───▶ [ Auth.js (NextAuth) Session & Bcrypt Validation ]
-       │
-       ├───▶ [ Authoritative Server-side Pricing Engine ]
-       │            │
-       │            ▼
-       │     [ Prisma ORM (PostgreSQL) ]
-       │
-       ├───▶ [ Razorpay Orders API ] ──▶ [ Standard Modal / UPI Dynamic QR ]
-       │            │
-       │            ▼
-       │     [ HMAC-SHA256 Signature & Webhook Verification ]
-       │
-       └───▶ [ Private Supabase Storage Engine ] ──▶ [ 300s Signed Download URLs ]
-```
-
----
-
-## 4. Project Folder Structure
-
-```
-stlforge/
+STLForge/
+├── .env.example                     # Production environment variable template
+├── .gitignore                       # Clean Git exclusion rules
+├── next.config.mjs                  # Next.js configuration with remote patterns
+├── package.json                     # Scripts (postinstall: prisma generate)
+├── postcss.config.mjs               # PostCSS config
+├── tailwind.config.ts               # Minimalist charcoal design tokens
+├── tsconfig.json                    # Path aliases (@/*, @/services/*, etc.)
+├── README.md                        # Documentation
+│
+├── docs/
+│   ├── deployment.md                # Step-by-step Vercel deployment guide
+│   └── architecture.md              # Architectural specification & data flow
+│
 ├── prisma/
-│   ├── schema.prisma           # Complete database schema (User, Order, Product, etc.)
-│   └── seed.js                 # Database seeder with realistic 3D models & prices
-├── src/
-│   ├── app/
-│   │   ├── (auth)/             # Login, Register, Forgot Password
-│   │   ├── (store)/            # Homepage, Products, Categories, Cart, Checkout, Legal
-│   │   ├── account/            # Customer Overview, Orders, Downloads, Profile, Wishlist
-│   │   ├── admin/              # Admin Analytics, Products CRUD, Orders, Customers, Settings
-│   │   ├── api/
-│   │   │   ├── auth/           # NextAuth handlers & Registration
-│   │   │   ├── products/       # Public product search & filters
-│   │   │   ├── orders/         # Order creation & server-side pricing
-│   │   │   ├── payments/       # Cryptographic signature verification
-│   │   │   ├── webhooks/       # Razorpay webhook listener
-│   │   │   ├── downloads/      # Authenticated signed URL resolver & streaming fallback
-│   │   │   └── admin/          # Admin analytics & CRUD APIs
-│   │   ├── payment/            # Success (/payment/success) & Failed routes
-│   │   ├── globals.css         # Minimalist charcoal design tokens
-│   │   └── layout.tsx          # Root layout with Auth & Store providers
-│   ├── components/
-│   │   ├── admin/              # AdminNav, AnalyticsCharts (Recharts)
-│   │   ├── cart/               # CartDrawer & line items
-│   │   ├── checkout/           # UPIQRCodeModal, Payment scripts
-│   │   ├── layout/             # Header, Footer, CurrencySelector
-│   │   ├── products/           # ProductCard, ProductGrid, ProductGallery, PrintSpecsTable
-│   │   ├── providers/          # NextAuth & Store state context
-│   │   └── ui/                 # Button, Input, Card, Badge
-│   ├── context/
-│   │   └── StoreContext.tsx    # Multi-currency state & persistent shopping cart
-│   ├── lib/
-│   │   ├── auth/               # NextAuth credentials & JWT callbacks
-│   │   ├── currency/           # Regional country mapping & subunit calculators
-│   │   ├── database/           # Prisma client singleton, products, categories, orders, downloads
-│   │   ├── email/              # Resend templates (Order confirmation, downloads ready)
-│   │   ├── razorpay/           # Orders API client & HMAC SHA-256 verifier
-│   │   ├── storage/            # Supabase private storage signed URL generator
-│   │   └── validation/         # Zod schemas
-│   ├── types/                  # TypeScript interface definitions
-│   └── utils/                  # Tailwind merge helper
-├── .env.example                # Documented environment variables
-├── next.config.mjs             # Next.js image domain configuration
-├── tailwind.config.ts          # Minimalist brand color palette
-├── tsconfig.json               # TypeScript path alias configuration
-└── package.json
+│   ├── schema.prisma                # Database models with directUrl support
+│   ├── migrations/                  # Schema migrations tracking
+│   └── seed.js                      # Database seeder script
+│
+├── public/
+│   ├── fonts/                       # Static fonts
+│   ├── icons/                       # Platform icons
+│   └── images/                      # Fallback product assets
+│
+└── src/
+    ├── app/                         # App Router pages & route handlers
+    │   ├── (auth)/                  # /login, /register, /forgot-password
+    │   ├── (store)/                 # Homepage, /products, /categories, /cart, /checkout
+    │   ├── account/                 # /account, /orders, /downloads, /profile, /wishlist
+    │   ├── admin/                   # /admin, /login, /products, /orders, /customers
+    │   ├── payment/                 # /payment/success, /payment/failed
+    │   └── api/                     # Backend API Route Handlers
+    ├── components/                  # Reusable React components
+    │   ├── admin/                   # AdminNav, AnalyticsCharts, DashboardMetrics
+    │   ├── auth/                    # LoginForm, RegisterForm, AdminLoginForm
+    │   ├── cart/                    # CartDrawer, CartSummary
+    │   ├── checkout/                # OrderSummary, UPIQRCodeModal
+    │   ├── layout/                  # Header, Footer, CurrencySelector
+    │   ├── products/                # ProductCard, ProductGrid, ProductFilters, ProductPurchaseCard
+    │   └── ui/                      # Button, Input, Card, Badge
+    ├── services/                    # Backend Domain Services
+    │   ├── product.service.ts       # Catalog querying & fallback
+    │   ├── order.service.ts         # Authoritative pricing & order creation
+    │   ├── payment.service.ts       # Razorpay orders & signature verification
+    │   ├── download.service.ts      # Cryptographic signed URLs & streaming
+    │   ├── user.service.ts          # Registration & persistent dev store
+    │   ├── email.service.ts         # Resend confirmation email dispatch
+    │   └── analytics.service.ts     # Platform revenue & metrics aggregation
+    ├── lib/                         # Infrastructure Singletons
+    │   ├── prisma.ts                # Prisma client with socket connectivity probe
+    │   ├── razorpay.ts              # Razorpay client & verification
+    │   ├── supabase.ts              # Supabase storage client
+    │   ├── auth.ts                  # NextAuth options
+    │   └── utils.ts                 # Tailwind cn utility helper
+    ├── hooks/                       # Custom React hooks (useCart, useCurrency)
+    ├── context/                     # Global StoreContext (cart, currency, drawer)
+    ├── types/                       # TypeScript interfaces & DTOs
+    ├── schemas/                     # Zod validation schemas
+    ├── constants/                   # Currencies & domain constants
+    └── data/                        # Static seed products & models
 ```
 
 ---
 
-## 5. Prerequisites
+## 5. Installation Instructions
 
-Before installing, ensure your environment has:
-- **Node.js:** v18.17.0+ or v20+ (Node v26 verified compatible)
-- **npm:** v9+ or **pnpm** / **yarn**
-- **PostgreSQL Database:** Supabase, Neon, or local PostgreSQL instance
-- **Razorpay Account:** Test or Live API keys
-- **Supabase Storage:** Project with private bucket for STL files
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/meiyarasam/stlforge.git
+   cd stlforge
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Configure Environment Variables:**
+   ```bash
+   cp .env.example .env
+   ```
 
 ---
 
-## 6. Installation & Local Development
+## 6. Environment Configuration
 
-### 1. Clone the repository
-```bash
-git clone https://github.com/your-username/stlforge.git
-cd stlforge
+Edit your local `.env` file with appropriate keys:
+
+```env
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/stlforge?schema=public"
+DIRECT_URL="postgresql://postgres:postgres@localhost:5432/stlforge?schema=public"
+AUTH_SECRET="your-development-secret-key-32-chars-min"
+NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_SECRET="your-development-secret-key-32-chars-min"
+
+RAZORPAY_KEY_ID="rzp_test_placeholder_key"
+RAZORPAY_KEY_SECRET="rzp_test_placeholder_secret"
+RAZORPAY_WEBHOOK_SECRET="rzp_webhook_secret_placeholder"
+NEXT_PUBLIC_RAZORPAY_KEY_ID="rzp_test_placeholder_key"
+NEXT_PUBLIC_MERCHANT_PROFILE_URL="https://razorpay.me/@meiyarasan"
+
+NEXT_PUBLIC_SUPABASE_URL="https://your-project.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="your-anon-key"
+SUPABASE_SERVICE_ROLE_KEY="your-service-role-key"
+SUPABASE_STORAGE_BUCKET_PRIVATE="stl-files-private"
+SUPABASE_STORAGE_BUCKET_PUBLIC="stl-images-public"
+
+RESEND_API_KEY="re_placeholder_key"
+RESEND_FROM_EMAIL="STLForge <orders@stlforge.com>"
+
+ADMIN_DEFAULT_EMAIL="admin@stlforge.com"
+ADMIN_DEFAULT_PASSWORD="Admin@STLForge2026!"
 ```
 
-### 2. Install dependencies
-```bash
-npm install
-```
+---
 
-### 3. Configure Environment Variables
-Copy `.env.example` to `.env`:
-```bash
-cp .env.example .env
-```
-Fill in your database URL and API keys (defaults work out-of-the-box in local development mode).
+## 7. Database Setup
 
-### 4. Initialize Database & Seed Sample Models
-```bash
-# Generate the Prisma Client
-npx prisma generate
+When connecting to a remote PostgreSQL database (such as Supabase):
+1. Create a PostgreSQL database instance on [Supabase](https://supabase.com).
+2. Set `DATABASE_URL` (pooler port 6543) and `DIRECT_URL` (direct port 5432) in `.env`.
+3. Push schema and seed initial products:
+   ```bash
+   npm run db:push
+   npm run db:seed
+   ```
 
-# Push the schema to your PostgreSQL database
-npx prisma db push
+---
 
-# Seed products, categories, multi-currency prices, and default admin
-npm run db:seed
-```
+## 8. Prisma Commands
 
-### 5. Launch the Development Server
+- **Generate Client:** `npm run db:generate` (`prisma generate`)
+- **Push Schema Changes:** `npm run db:push` (`prisma db push`)
+- **Seed Database:** `npm run db:seed` (`node prisma/seed.js`)
+- **Open Prisma Studio:** `npx prisma studio`
+
+---
+
+## 9. Local Development
+
+Start the development server:
 ```bash
 npm run dev
 ```
+
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
----
-
-## 7. Environment Variables Reference
-
-| Variable | Description | Example / Default |
-|---|---|---|
-| `NEXT_PUBLIC_APP_URL` | Public application URL | `http://localhost:3000` |
-| `DATABASE_URL` | PostgreSQL connection string | `postgresql://postgres:password@localhost:5432/stlforge` |
-| `NEXTAUTH_URL` | NextAuth canonical URL | `http://localhost:3000` |
-| `NEXTAUTH_SECRET` | 32+ character encryption secret | `your-secure-random-32char-string` |
-| `RAZORPAY_KEY_ID` | Razorpay Key ID | `rzp_live_...` or `rzp_test_...` |
-| `RAZORPAY_KEY_SECRET` | Razorpay Key Secret | `your-razorpay-key-secret` |
-| `RAZORPAY_WEBHOOK_SECRET` | Razorpay Webhook HMAC secret | `your-webhook-secret` |
-| `NEXT_PUBLIC_RAZORPAY_KEY_ID` | Client-accessible Razorpay Key | `rzp_live_...` |
-| `NEXT_PUBLIC_MERCHANT_PROFILE_URL` | Personal payment link fallback | `https://razorpay.me/@meiyarasan` |
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL | `https://xyz.supabase.co` |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase public anon key | `eyJhbGciOi...` |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase admin key for signing URLs | `eyJhbGciOi...` |
-| `SUPABASE_STORAGE_BUCKET_PRIVATE` | Private bucket for digital STLs | `stl-files-private` |
-| `SUPABASE_STORAGE_BUCKET_PUBLIC` | Public bucket for preview renders | `stl-images-public` |
-| `RESEND_API_KEY` | Resend transactional email API key | `re_123456...` |
-| `RESEND_FROM_EMAIL` | Verified sending address | `STLForge <orders@stlforge.com>` |
-| `ADMIN_DEFAULT_EMAIL` | Initial admin login | `admin@stlforge.com` |
-| `ADMIN_DEFAULT_PASSWORD` | Initial admin password | `Admin@STLForge2026!` |
+- **Customer Registration:** [http://localhost:3000/register](http://localhost:3000/register)
+- **Admin Portal:** [http://localhost:3000/admin/login](http://localhost:3000/admin/login)
+  - **Email:** `admin@stlforge.com`
+  - **Password:** `Admin@STLForge2026!`
 
 ---
 
-## 8. Multi-Currency International Pricing
+## 10. Vercel Deployment
 
-Unlike stores that blindly multiply by live fluctuating forex rates, STLForge implements **Explicit Multi-Currency Models**:
-- Products contain a `ProductPrice` row for each currency code (`INR`, `USD`, `EUR`, `GBP`, `CAD`, `AUD`, `JPY`).
-- When an administrator configures a product, they can set:
-  - **INR:** ₹999
-  - **USD:** $14.99
-  - **EUR:** €13.99
-  - **GBP:** £11.99
-- When an Indian customer visits, prices display natively in ₹INR, checkout calculates in INR paise, and Razorpay standard checkout requests ₹999.
-- Subunit conversion rules:
-  - Standard Currencies (USD, INR, EUR, GBP): multiplied by `100` (cents/paise)
-  - Zero-Decimal Currencies (JPY): multiplied by `1`
+For comprehensive step-by-step instructions, see [docs/deployment.md](docs/deployment.md).
+
+Quick summary:
+1. Push your repository to GitHub: `git push origin main`.
+2. Import repository in [Vercel](https://vercel.com).
+3. Set environment variables matching `.env.example`.
+4. Deploy. Vercel will execute `npm run build` with automated `prisma generate` post-install hook.
 
 ---
 
-## 9. Razorpay Payment Architecture
+## 11. Razorpay Integration Setup
 
-1. **Cart Checkout:** Customer initiates checkout. Next.js Route Handler `/api/orders/create` calculates authoritative server-side totals.
-2. **Internal Pending Order:** Record saved with status `PENDING` and unique order number (`STL-XXXXXX`).
-3. **Razorpay Orders API:** Initiated with amount in smallest currency units.
-4. **Standard Checkout Modal:** Customer completes card payment, net banking, or UPI.
-5. **Cryptographic Verification:**
-   - Client sends signature to `/api/payments/verify`.
-   - Node.js crypto calculates `HMAC-SHA256(order_id + "|" + payment_id, RAZORPAY_KEY_SECRET)` using timing-safe buffers.
-   - If valid, order transitions to `PAID`, download records are unlocked, and confirmation email dispatches.
-6. **Webhook Redundancy:** Independent webhook `/api/webhooks/razorpay` captures server-to-server notifications and prevents duplicate event processing.
-7. **Dynamic UPI QR:** For eligible Indian buyers, dynamic amount-bound QR codes are rendered for direct scanning.
+1. Sign up on [Razorpay](https://razorpay.com).
+2. Navigate to **API Keys** and generate Test/Live Key ID and Secret.
+3. Configure **Webhooks** pointing to `https://your-domain.vercel.app/api/webhooks/razorpay` with `payment.captured`, `payment.failed`, and `order.paid` events.
+4. Set `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, and `RAZORPAY_WEBHOOK_SECRET` in environment variables.
 
 ---
 
-## 10. Secure Digital Download Protection
+## 12. Supabase Configuration
 
-- Original `.stl` and `.zip` archives are stored in **private, non-public** Supabase storage buckets.
-- Download links are NEVER permanent public URLs.
-- When an authorized user requests a file, the server:
-  1. Verifies order ownership.
-  2. Confirms payment status is `PAID`.
-  3. Checks download count (`maxDownloads = 25`).
-  4. Checks token expiration (`expiresAt = 365 days`).
-  5. Requests a time-limited signed download URL (`createSignedUrl(path, 300)`).
-  6. Increments the download counter and logs the IP and user-agent.
+1. Create bucket `stl-files-private` (Private bucket) for digital STL files.
+2. Create bucket `stl-images-public` (Public bucket) for 3D preview images.
+3. Obtain API URL, Anon Key, and Service Role Key from **Project Settings** > **API**.
+4. Set `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` in environment variables.
 
 ---
 
-## 11. Admin Access & Management
+## 13. Troubleshooting
 
-1. Access the admin dashboard at `/admin`.
-2. Default Seed Credentials:
-   - **Email:** `admin@stlforge.com`
-   - **Password:** `Admin@STLForge2026!`
-3. Features:
-   - **Analytics:** Weekly revenue velocity, geographic buyer distribution, multi-currency settlement.
-   - **Products CRUD:** Add new models, upload preview images, set multi-currency prices, enter slicer parameters.
-   - **Orders Audit:** Search orders by reference, customer email, or payment gateway status.
-   - **Customers:** View registered makers, country distribution, and toggle suspended accounts.
+### Prisma Connection Timeout in Local Development
+- If local PostgreSQL is not running, STLForge automatically activates its 2ms connectivity guard (`isDatabaseReachable`) and serves persistent local data from `data/users.json` and in-memory sample collections with zero latency.
 
----
+### EPERM errors during build on Windows
+- Close any background processes holding file locks on `.next/` and run `npm run build`.
 
-## 12. Vercel Production Deployment
-
-1. Push your repository to GitHub:
-   ```bash
-   git add .
-   git commit -m "feat: complete production STLForge marketplace"
-   git push origin main
-   ```
-2. Import project into [Vercel](https://vercel.com).
-3. Set the Root Directory to `./` and Framework Preset to `Next.js`.
-4. Add all environment variables listed in `.env.example`.
-5. Deploy. Vercel will automatically build the static and server-rendered routes.
-
----
-
-## 13. License
-
-Copyright © 2026 STLForge. All rights reserved.
-Source code provided for personal, commercial, and enterprise deployment under the Standard Software License.
-
+### Dynamic Server Usage Error on Vercel
+- All API route handlers reading request headers, cookies, or search parameters export `export const dynamic = "force-dynamic"`.
+- All client components using `useSearchParams()` are wrapped inside `<Suspense>` boundaries.
