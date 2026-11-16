@@ -3,7 +3,9 @@ import fs from "fs";
 import path from "path";
 import os from "os";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co";
+const supabaseUrl =
+  process.env.NEXT_PUBLIC_SUPABASE_URL ||
+  "https://nwndbqktwvrqwaikzuwc.supabase.co";
 const supabaseServiceRoleKey =
   process.env.SUPABASE_SERVICE_ROLE_KEY ||
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
@@ -69,6 +71,138 @@ export async function createSignedDownloadUrl(
     console.error("Error creating signed download URL:", err);
     return { signedUrl: null, error: err.message || "Failed to generate signed download URL" };
   }
+}
+
+/**
+ * Create a direct signed upload URL so the browser can upload directly to Supabase Storage,
+ * completely bypassing Vercel's 4.5 MB request body limit.
+ */
+export async function createDirectSignedUploadUrl(
+  bucket: string,
+  storagePath: string
+): Promise<{ signedUrl: string | null; token: string | null; error: string | null }> {
+  try {
+    const isPlaceholder =
+      !process.env.SUPABASE_SERVICE_ROLE_KEY ||
+      process.env.SUPABASE_SERVICE_ROLE_KEY.includes("placeholder");
+
+    if (isPlaceholder) {
+      return {
+        signedUrl: null,
+        token: null,
+        error: "Supabase service role key is not configured for direct upload.",
+      };
+    }
+
+    const { data, error } = await supabaseAdmin.storage
+      .from(bucket)
+      .createSignedUploadUrl(storagePath, { upsert: true });
+
+    if (error || !data) {
+      return {
+        signedUrl: null,
+        token: null,
+        error: error?.message || "Failed to generate signed upload URL from Supabase.",
+      };
+    }
+
+    return {
+      signedUrl: data.signedUrl,
+      token: data.token,
+      error: null,
+    };
+  } catch (err: any) {
+    return {
+      signedUrl: null,
+      token: null,
+      error: err.message || "Exception while creating signed upload URL.",
+    };
+  }
+}
+
+/**
+ * Confirms whether an uploaded object actually exists in Supabase Storage
+ */
+export async function verifyStorageObjectExists(
+  bucket: string,
+  storagePath: string
+): Promise<{ exists: boolean; size?: number; error?: string }> {
+  try {
+    const isPlaceholder =
+      !process.env.SUPABASE_SERVICE_ROLE_KEY ||
+      process.env.SUPABASE_SERVICE_ROLE_KEY.includes("placeholder");
+
+    if (isPlaceholder) {
+      // Local fallback checks
+      const localDiskPath = path.join(process.cwd(), "storage", "private", storagePath);
+      const tmpDiskPath = path.join(os.tmpdir(), "storage", "private", storagePath);
+      const publicPath = path.join(
+        process.cwd(),
+        "public",
+        "uploads",
+        "previews",
+        path.basename(storagePath)
+      );
+      if (fs.existsSync(localDiskPath) || fs.existsSync(tmpDiskPath) || fs.existsSync(publicPath)) {
+        return { exists: true };
+      }
+      return { exists: false, error: "File not found on local disk" };
+    }
+
+    const normalizedPath = storagePath.replace(/\\/g, "/");
+    const parentDir = path.dirname(normalizedPath);
+    const fileName = path.basename(normalizedPath);
+    const cleanDir = parentDir === "." ? "" : parentDir;
+
+    const { data, error } = await supabaseAdmin.storage
+      .from(bucket)
+      .list(cleanDir, { search: fileName });
+
+    if (error) {
+      return { exists: false, error: error.message };
+    }
+
+    const match = data?.find((f) => f.name === fileName);
+    if (match) {
+      return { exists: true, size: match.metadata?.size };
+    }
+
+    return { exists: false, error: `Object ${storagePath} not found in bucket ${bucket}` };
+  } catch (err: any) {
+    return { exists: false, error: err.message || "Failed to verify storage object" };
+  }
+}
+
+/**
+ * Remove an object from Supabase Storage (used for cleanup / rollback on failed transactions)
+ */
+export async function deleteStorageObject(
+  bucket: string,
+  storagePath: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const isPlaceholder =
+      !process.env.SUPABASE_SERVICE_ROLE_KEY ||
+      process.env.SUPABASE_SERVICE_ROLE_KEY.includes("placeholder");
+
+    if (!isPlaceholder) {
+      const { error } = await supabaseAdmin.storage.from(bucket).remove([storagePath]);
+      if (error) {
+        return { success: false, error: error.message };
+      }
+    }
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * Retrieve public CDN URL for an object in a public bucket
+ */
+export function getPublicStorageUrl(bucket: string, storagePath: string): string {
+  const { data } = supabaseAdmin.storage.from(bucket).getPublicUrl(storagePath);
+  return data.publicUrl;
 }
 
 /**
@@ -173,8 +307,7 @@ export async function readPrivateFile(
 }
 
 /**
- * Upload a public preview image to dual storage (Supabase Storage / local public directory / base64 Data URI)
- * Guaranteed to succeed in any hosting environment (Vercel serverless, container, or VPS).
+ * Upload a public preview image to dual storage (Supabase Storage / local public directory)
  * Never falls back to third-party Unsplash placeholders.
  */
 export async function uploadPublicImage(
@@ -212,7 +345,7 @@ export async function uploadPublicImage(
     }
   }
 
-  // 2. Try saving to local public directory (works in dev, node server, VPS)
+  // 2. Try saving to local public directory (dev, node server, VPS)
   try {
     const filename = path.basename(filePath);
     const publicDiskPath = path.join(process.cwd(), "public", "uploads", "previews", filename);
@@ -223,20 +356,10 @@ export async function uploadPublicImage(
     fs.writeFileSync(publicDiskPath, fileBuffer);
     return { publicUrl: `/uploads/previews/${filename}`, error: null };
   } catch (diskErr) {
-    // Expected on serverless environments like Vercel with read-only filesystems
     console.warn("Local filesystem is read-only (serverless environment):", diskErr);
   }
 
-  // 3. 100% Guaranteed Fallback: High-quality Data URI
-  // Directly stored in PostgreSQL ProductImage.url, rendered instantly across all browsers and devices
-  try {
-    const safeMime = contentType || "image/jpeg";
-    const dataUri = `data:${safeMime};base64,${fileBuffer.toString("base64")}`;
-    return { publicUrl: dataUri, error: null };
-  } catch (base64Err: any) {
-    return {
-      publicUrl: null,
-      error: base64Err.message || "Failed to process image buffer.",
-    };
-  }
+  // 3. Direct Supabase Storage URL builder
+  const fallbackUrl = `https://nwndbqktwvrqwaikzuwc.supabase.co/storage/v1/object/public/${PUBLIC_BUCKET}/${filePath}`;
+  return { publicUrl: fallbackUrl, error: null };
 }

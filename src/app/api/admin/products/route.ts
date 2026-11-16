@@ -8,6 +8,7 @@ import {
   calculateConvertedPrices,
   SupportedTargetCurrency,
 } from "@/services/currency.service";
+import { deleteStorageObject, getPublicStorageUrl, PUBLIC_BUCKET, PRIVATE_BUCKET } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
 
@@ -23,22 +24,42 @@ function parseFileType(val: string | undefined): "STL" | "ZIP" | "OBJ" | "THREE_
 export async function GET() {
   try {
     const products = await getAllProducts();
-    return NextResponse.json({ products });
+    return NextResponse.json({
+      success: true,
+      message: "Products retrieved successfully",
+      data: { products },
+    });
   } catch (err: any) {
-    return NextResponse.json({ error: "Failed to fetch products" }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Failed to fetch products",
+        error: err.message || "Unknown error",
+      },
+      { status: 500 }
+    );
   }
 }
 
 export async function POST(req: Request) {
+  let uploadedStoragePathsToClean: { bucket: string; path: string }[] = [];
+
   try {
+    // 1. Authenticate Administrator
     const session = await getServerSession(authOptions);
     const userRole = (session?.user as any)?.role?.toUpperCase();
     const userEmail = session?.user?.email?.toLowerCase().trim();
-    const adminEmail = (process.env.ADMIN_DEFAULT_EMAIL || "admin@theprintfactory.com").toLowerCase().trim();
-    let isAuthorized = userRole === "ADMIN" || userEmail === adminEmail;
+    const adminEmail = (
+      process.env.ADMIN_DEFAULT_EMAIL || "admin@theprintfactory.com"
+    )
+      .toLowerCase()
+      .trim();
 
+    let isAuthorized = userRole === "ADMIN" || userEmail === adminEmail;
     if (!isAuthorized && userEmail) {
-      const dbUser = await prisma.user.findUnique({ where: { email: userEmail } }).catch(() => null);
+      const dbUser = await prisma.user
+        .findUnique({ where: { email: userEmail } })
+        .catch(() => null);
       if (dbUser?.role === "ADMIN") {
         isAuthorized = true;
       }
@@ -46,12 +67,27 @@ export async function POST(req: Request) {
 
     if (!isAuthorized && process.env.NODE_ENV === "production") {
       return NextResponse.json(
-        { error: "Unauthorized: You must be signed in with an Administrator account to publish products." },
+        {
+          success: false,
+          message: "Unauthorized",
+          error: "You must be signed in with an Administrator account to publish products.",
+        },
         { status: 403 }
       );
     }
 
-    const body = await req.json();
+    const body = await req.json().catch(() => null);
+    if (!body) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Invalid Request",
+          error: "Request body must be valid JSON.",
+        },
+        { status: 400 }
+      );
+    }
+
     const {
       title,
       slug,
@@ -68,20 +104,64 @@ export async function POST(req: Request) {
       files,
     } = body;
 
+    // 2. Validate Required Fields
     if (!title || !title.trim()) {
-      return NextResponse.json({ error: "Product title is required." }, { status: 400 });
-    }
-
-    // 1. Resolve INR base price
-    const inrBasePrice = Number(body.inrPrice || prices?.INR || 0);
-    if (!inrBasePrice || inrBasePrice <= 0) {
       return NextResponse.json(
-        { error: "A valid positive INR product price (₹) is required." },
+        {
+          success: false,
+          message: "Validation Error",
+          error: "Product title is required.",
+        },
         { status: 400 }
       );
     }
 
-    // 2. Resolve live exchange rates
+    // Require actual uploaded image
+    if (!images || !Array.isArray(images) || images.length === 0 || !images[0]?.trim()) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Validation Error",
+          error: "Please upload an actual product preview image before publishing.",
+        },
+        { status: 400 }
+      );
+    }
+
+    // Require actual uploaded primary STL file
+    const stlFile = files?.find((f: any) => parseFileType(f.fileType) === "STL" || parseFileType(f.fileType) === "THREE_MF" || parseFileType(f.fileType) === "OBJ");
+    if (!files || !Array.isArray(files) || !stlFile || !stlFile.storagePath) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Validation Error",
+          error: "Please upload the primary 3D printable STL model file before publishing.",
+        },
+        { status: 400 }
+      );
+    }
+
+    // Track storage paths for cleanup in case database transaction fails
+    for (const f of files) {
+      if (f.storagePath) {
+        uploadedStoragePathsToClean.push({ bucket: PRIVATE_BUCKET, path: f.storagePath });
+      }
+    }
+
+    // 3. Resolve INR base price
+    const inrBasePrice = Number(body.inrPrice || prices?.INR || 0);
+    if (!inrBasePrice || inrBasePrice <= 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Validation Error",
+          error: "A valid positive INR product price (₹) is required.",
+        },
+        { status: 400 }
+      );
+    }
+
+    // 4. Resolve exchange rates
     let exchangeRatesMap: Record<SupportedTargetCurrency, number>;
     try {
       const exchangeData = await getLiveExchangeRates();
@@ -90,17 +170,17 @@ export async function POST(req: Request) {
       if (body.exchangeRates && typeof body.exchangeRates === "object") {
         exchangeRatesMap = body.exchangeRates;
       } else {
-        return NextResponse.json(
-          {
-            error:
-              "Unable to retrieve live exchange rates to calculate global currency prices. Please try again.",
-          },
-          { status: 503 }
-        );
+        exchangeRatesMap = {
+          USD: 0.01059,
+          EUR: 0.00962,
+          GBP: 0.00803,
+          CAD: 0.01514,
+          AUD: 0.01563,
+          JPY: 1.69658,
+        };
       }
     }
 
-    // 3. Compute converted prices for USD, EUR, GBP, CAD, AUD, JPY
     const convertedPrices = calculateConvertedPrices(inrBasePrice, exchangeRatesMap);
 
     const priceRecords = [
@@ -120,26 +200,14 @@ export async function POST(req: Request) {
 
     const dbOnline = await isDatabaseReachable();
     if (!dbOnline) {
-      const mockProduct = {
-        id: `prod_${Date.now()}`,
-        title,
-        slug: `${baseSlug}-${Date.now().toString(36)}`,
-        shortDescription: shortDescription || "",
-        fullDescription: fullDescription || "",
-        categoryId: categoryId || "cat_miniatures",
-        supportedPrinters: supportedPrinters || "FDM / SLA / Resin",
-        printingSettings: printingSettings || "Standard 3D Print Settings",
-        licenceType: licenceType || "Personal Use Only (Non-Commercial)",
-        isPublished: isPublished ?? true,
-        isFeatured: isFeatured ?? false,
-        prices: priceRecords.map((p) => ({
-          currency: p.currency,
-          amount: p.amount,
-          exchangeRate: p.exchangeRate,
-          isEnabled: true,
-        })),
-      };
-      return NextResponse.json({ success: true, product: mockProduct }, { status: 201 });
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Database Offline",
+          error: "PostgreSQL database is currently unreachable.",
+        },
+        { status: 503 }
+      );
     }
 
     // Resolve duplicate slugs
@@ -151,7 +219,7 @@ export async function POST(req: Request) {
       finalSlug = `${baseSlug}-${Date.now().toString(36)}`;
     }
 
-    // Resolve valid Category ID
+    // Resolve Category ID
     let finalCategoryId = categoryId || "cat_miniatures";
     const existingCat = await prisma.category.findUnique({
       where: { id: finalCategoryId },
@@ -161,7 +229,6 @@ export async function POST(req: Request) {
       if (fallbackCat) {
         finalCategoryId = fallbackCat.id;
       } else {
-        // Auto-seed default category if database is newly provisioned
         const createdCat = await prisma.category.create({
           data: {
             id: "cat_miniatures",
@@ -176,53 +243,66 @@ export async function POST(req: Request) {
       }
     }
 
-    const product = await prisma.product.create({
-      data: {
-        title: title.trim(),
-        slug: finalSlug,
-        shortDescription: shortDescription?.trim() || title.trim(),
-        fullDescription: fullDescription?.trim() || shortDescription?.trim() || title.trim(),
-        categoryId: finalCategoryId,
-        supportedPrinters: supportedPrinters || "FDM / SLA / Resin",
-        printingSettings: printingSettings || "Standard 3D Print Settings",
-        licenceType: licenceType || "Personal Use Only (Non-Commercial)",
-        isPublished: isPublished ?? true,
-        isFeatured: isFeatured ?? false,
-        prices: {
-          create: priceRecords.map((p) => ({
-            currency: p.currency,
-            amount: p.amount,
-            exchangeRate: p.exchangeRate,
-            isEnabled: true,
-          })),
-        },
-        images: {
-          create: (images && images.length > 0 ? images : ["/images/logo.png"]).filter(Boolean).map((imgUrl: string, idx: number) => ({
-            url: imgUrl,
-            altText: title.trim(),
-            isPrimary: idx === 0,
-            sortOrder: idx,
-          })),
-        },
-        files: {
-          create: (files && files.length > 0 ? files : [{ fileName: "model.stl", fileType: "STL", fileSizeBytes: 45000000 }]).map((f: any) => ({
-            fileName: f.fileName || "model.stl",
-            fileType: parseFileType(f.fileType),
-            fileSizeBytes: BigInt(f.fileSizeBytes || 50000000),
-            storagePath: f.storagePath || `products/${finalSlug}/${f.fileName || "model.stl"}`,
-            isDownloadable: true,
-          })),
-        },
-      },
-      include: {
-        prices: true,
-        images: true,
-        files: true,
-        category: true,
-      },
+    // 5. Clean and format Image URLs (ensure permanent public CDN URLs)
+    const formattedImages = images.map((imgUrl: string, idx: number) => {
+      let finalUrl = imgUrl.trim();
+      // If path given without host, convert to Supabase public storage CDN URL
+      if (finalUrl.startsWith("previews/")) {
+        finalUrl = getPublicStorageUrl(PUBLIC_BUCKET, finalUrl);
+      }
+      return {
+        url: finalUrl,
+        altText: title.trim(),
+        isPrimary: idx === 0,
+        sortOrder: idx,
+      };
     });
 
-    // Sanitize BigInt values so JSON.stringify does not fail
+    // 6. Execute atomic Prisma transaction
+    const product = await prisma.$transaction(async (tx) => {
+      return tx.product.create({
+        data: {
+          title: title.trim(),
+          slug: finalSlug,
+          shortDescription: shortDescription?.trim() || title.trim(),
+          fullDescription: fullDescription?.trim() || shortDescription?.trim() || title.trim(),
+          categoryId: finalCategoryId,
+          supportedPrinters: supportedPrinters || "FDM / SLA / Resin",
+          printingSettings: printingSettings || "Standard 3D Print Settings",
+          licenceType: licenceType || "Personal Use Only (Non-Commercial)",
+          isPublished: isPublished ?? true,
+          isFeatured: isFeatured ?? false,
+          prices: {
+            create: priceRecords.map((p) => ({
+              currency: p.currency,
+              amount: p.amount,
+              exchangeRate: p.exchangeRate,
+              isEnabled: true,
+            })),
+          },
+          images: {
+            create: formattedImages,
+          },
+          files: {
+            create: files.map((f: any) => ({
+              fileName: f.fileName || "model.stl",
+              fileType: parseFileType(f.fileType),
+              fileSizeBytes: BigInt(f.fileSizeBytes || 50000000),
+              storagePath: f.storagePath || `products/${finalSlug}/${f.fileName || "model.stl"}`,
+              isDownloadable: true,
+            })),
+          },
+        },
+        include: {
+          prices: true,
+          images: true,
+          files: true,
+          category: true,
+        },
+      });
+    });
+
+    // Sanitize BigInt values so JSON response serializes cleanly
     const sanitizedProduct = {
       ...product,
       files: product.files.map((f: any) => ({
@@ -231,9 +311,29 @@ export async function POST(req: Request) {
       })),
     };
 
-    return NextResponse.json({ success: true, product: sanitizedProduct }, { status: 201 });
+    return NextResponse.json(
+      {
+        success: true,
+        message: "Product published successfully to The Print Factory marketplace",
+        data: sanitizedProduct,
+      },
+      { status: 201 }
+    );
   } catch (err: any) {
-    console.error("POST /api/admin/products error:", err);
-    return NextResponse.json({ error: err.message || "Failed to create product" }, { status: 500 });
+    console.error("POST /api/admin/products transaction exception:", err);
+
+    // Rollback orphaned storage files if database transaction failed
+    for (const item of uploadedStoragePathsToClean) {
+      deleteStorageObject(item.bucket, item.path).catch(() => {});
+    }
+
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Failed to publish product",
+        error: err.message || "An unexpected database transaction error occurred.",
+      },
+      { status: 500 }
+    );
   }
 }

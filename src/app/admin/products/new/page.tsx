@@ -18,10 +18,11 @@ import {
   Loader2,
   RefreshCw,
   X,
-  FileText,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { uploadFileToStorage } from "@/lib/storage/clientUpload";
+import { safeFetchJson } from "@/lib/api/safeFetch";
 
 export default function NewProductPage() {
   const router = useRouter();
@@ -38,30 +39,36 @@ export default function NewProductPage() {
   );
   const [licenceType, setLicenceType] = useState("Personal Use Only (Non-Commercial)");
 
-  // Media & Previews
+  // 1. Product Preview Image (Strictly direct device upload, no external URLs)
   const [imageUrl, setImageUrl] = useState("");
   const [localImagePreview, setLocalImagePreview] = useState("");
   const [imageFileName, setImageFileName] = useState("");
+  const [imageFileSize, setImageFileSize] = useState<number>(0);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [imageProgress, setImageProgress] = useState<number>(0);
+  const [imageError, setImageError] = useState<string | null>(null);
 
-  // Digital 3D STL / 3MF Files
+  // 2. Primary 3D STL / 3MF Model File
   const [stlFileName, setStlFileName] = useState("");
   const [stlFileSize, setStlFileSize] = useState<number>(0);
   const [stlStoragePath, setStlStoragePath] = useState<string>("");
   const [isUploadingStl, setIsUploadingStl] = useState(false);
+  const [stlProgress, setStlProgress] = useState<number>(0);
+  const [stlError, setStlError] = useState<string | null>(null);
 
-  // Optional ZIP Package
+  // 3. Optional ZIP Package Archive
   const [zipFileName, setZipFileName] = useState("");
   const [zipFileSize, setZipFileSize] = useState<number>(0);
   const [zipStoragePath, setZipStoragePath] = useState<string>("");
   const [isUploadingZip, setIsUploadingZip] = useState(false);
+  const [zipProgress, setZipProgress] = useState<number>(0);
+  const [zipError, setZipError] = useState<string | null>(null);
 
-  // Product Base Price & Live Currency Conversion (Only INR is manually editable)
+  // Product Base Price & Live Currency Conversion (Only INR is editable)
   const [priceINR, setPriceINR] = useState("999");
   const [exchangeRates, setExchangeRates] = useState<Record<string, number> | null>(null);
   const [ratesLastUpdated, setRatesLastUpdated] = useState<string | null>(null);
   const [isLoadingRates, setIsLoadingRates] = useState<boolean>(true);
-  const [ratesError, setRatesError] = useState<string | null>(null);
 
   // Form State
   const [isLoading, setIsLoading] = useState(false);
@@ -74,15 +81,16 @@ export default function NewProductPage() {
   // Fetch live exchange rates on mount and on user refresh
   const fetchRates = async (forceRefresh = false) => {
     setIsLoadingRates(true);
-    setRatesError(null);
     try {
-      const res = await fetch(`/api/currency/rates${forceRefresh ? "?refresh=true" : ""}`);
-      const data = await res.json();
-      if (!res.ok || !data.success || !data.rates) {
-        throw new Error(data.error || "Failed to load live exchange rates.");
+      const res = await safeFetchJson<{ rates: Record<string, number>; lastUpdated?: string }>(
+        `/api/currency/rates${forceRefresh ? "?refresh=true" : ""}`
+      );
+      if (res.success && res.data?.rates) {
+        setExchangeRates(res.data.rates);
+        setRatesLastUpdated(res.data.lastUpdated || new Date().toUTCString());
+      } else {
+        throw new Error(res.error || "Failed to load rates");
       }
-      setExchangeRates(data.rates);
-      setRatesLastUpdated(data.lastUpdated || new Date().toUTCString());
     } catch (err: any) {
       console.warn("Exchange rate fetch notice:", err);
       // Fallback baseline rates so publishing is never blocked
@@ -144,142 +152,144 @@ export default function NewProductPage() {
   const formatBytes = (bytes: number) => {
     if (!bytes || bytes <= 0) return "0 MB";
     const mb = bytes / (1024 * 1024);
-    if (mb < 1) return `${(bytes / 1024).toFixed(1)} KB`;
+    if (mb < 0.1) return `${(bytes / 1024).toFixed(0)} KB`;
     return `${mb.toFixed(1)} MB`;
   };
 
-  // Upload Public Preview Image
+  // 1. Handle Product Image Upload
   const handleImageFileUpload = async (file: File) => {
     if (!file) return;
 
-    // 1. Instant client-side visual preview (0ms latency)
+    // Validate format
+    const ext = file.name.split(".").pop()?.toLowerCase() || "";
+    const allowed = ["jpg", "jpeg", "png", "webp"];
+    if (!allowed.includes(ext)) {
+      setImageError(`Invalid format .${ext}. Only JPG, JPEG, PNG, and WebP are allowed.`);
+      return;
+    }
+
+    if (file.size > 15 * 1024 * 1024) {
+      setImageError(`File exceeds 15 MB limit (${formatBytes(file.size)}).`);
+      return;
+    }
+
+    // Instant local preview
     try {
-      const objectUrl = URL.createObjectURL(file);
-      setLocalImagePreview(objectUrl);
+      const objUrl = URL.createObjectURL(file);
+      setLocalImagePreview(objUrl);
     } catch (e) {}
 
     setImageFileName(file.name);
+    setImageFileSize(file.size);
     setIsUploadingImage(true);
+    setImageProgress(0);
+    setImageError(null);
     setMessage(null);
 
-    // 2. Read as persistent Base64 Data URI on client as immediate fallback
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === "string") {
-        setImageUrl(reader.result);
-      }
-    };
-    reader.readAsDataURL(file);
-
-    // 3. Upload to server API for storage persistence
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("type", "image");
-      formData.append("slug", slug || "preview");
-
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 20000);
-
-      const res = await fetch("/api/admin/upload", {
-        method: "POST",
-        body: formData,
-        signal: controller.signal,
+      const result = await uploadFileToStorage({
+        file,
+        uploadType: "image",
+        slug: slug || "preview",
+        onProgress: (p) => setImageProgress(p),
       });
 
-      clearTimeout(timeoutId);
-      const data = await res.json();
-      if (res.ok && data.url) {
-        setImageUrl(data.url);
+      if (result.publicUrl) {
+        setImageUrl(result.publicUrl);
+      } else if (result.storagePath) {
+        setImageUrl(result.storagePath);
       }
+      setImageProgress(100);
     } catch (err: any) {
-      console.warn("Server upload notice, using persistent client image:", err);
-      // Client Base64 is already set via reader.onload, so publishing is never blocked!
+      console.error("Image storage upload error:", err);
+      setImageError(err.message || "Failed to upload image to Supabase Storage.");
     } finally {
       setIsUploadingImage(false);
     }
   };
 
-  // Upload Private 3D STL / 3MF Model
+  // 2. Handle Primary 3D STL / 3MF Upload
   const handleStlFileUpload = async (file: File) => {
     if (!file) return;
+
+    const ext = file.name.split(".").pop()?.toLowerCase() || "";
+    const allowed = ["stl", "obj", "3mf"];
+    if (!allowed.includes(ext)) {
+      setStlError(`Invalid format .${ext}. Only .STL, .3MF, and .OBJ 3D models are allowed.`);
+      return;
+    }
+
+    if (file.size > 150 * 1024 * 1024) {
+      setStlError(`File exceeds 150 MB limit (${formatBytes(file.size)}).`);
+      return;
+    }
 
     setStlFileName(file.name);
     setStlFileSize(file.size);
     setIsUploadingStl(true);
+    setStlProgress(0);
+    setStlError(null);
     setMessage(null);
 
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("type", "stl");
-      formData.append("slug", slug || "model");
-
-      const res = await fetch("/api/admin/upload", {
-        method: "POST",
-        body: formData,
+      const result = await uploadFileToStorage({
+        file,
+        uploadType: "stl",
+        slug: slug || "model",
+        onProgress: (p) => setStlProgress(p),
       });
 
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to upload STL model.");
-      }
-
-      if (data.storagePath) {
-        setStlStoragePath(data.storagePath);
-        if (data.fileName) setStlFileName(data.fileName);
-        if (data.fileSizeBytes) setStlFileSize(data.fileSizeBytes);
-      }
+      setStlStoragePath(result.storagePath);
+      setStlProgress(100);
     } catch (err: any) {
-      setMessage({
-        text: err.message || "Failed to upload STL file to storage.",
-        type: "error",
-      });
+      console.error("STL storage upload error:", err);
+      setStlError(err.message || "Failed to upload STL model to private storage.");
     } finally {
       setIsUploadingStl(false);
     }
   };
 
-  // Upload Private ZIP Package
+  // 3. Handle Optional ZIP Package Upload
   const handleZipFileUpload = async (file: File) => {
     if (!file) return;
+
+    const ext = file.name.split(".").pop()?.toLowerCase() || "";
+    if (ext !== "zip") {
+      setZipError(`Invalid package format .${ext}. Only .ZIP packages are allowed.`);
+      return;
+    }
+
+    if (file.size > 250 * 1024 * 1024) {
+      setZipError(`File exceeds 250 MB limit (${formatBytes(file.size)}).`);
+      return;
+    }
 
     setZipFileName(file.name);
     setZipFileSize(file.size);
     setIsUploadingZip(true);
+    setZipProgress(0);
+    setZipError(null);
     setMessage(null);
 
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("type", "zip");
-      formData.append("slug", slug || "package");
-
-      const res = await fetch("/api/admin/upload", {
-        method: "POST",
-        body: formData,
+      const result = await uploadFileToStorage({
+        file,
+        uploadType: "zip",
+        slug: slug || "package",
+        onProgress: (p) => setZipProgress(p),
       });
 
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to upload ZIP archive.");
-      }
-
-      if (data.storagePath) {
-        setZipStoragePath(data.storagePath);
-        if (data.fileName) setZipFileName(data.fileName);
-        if (data.fileSizeBytes) setZipFileSize(data.fileSizeBytes);
-      }
+      setZipStoragePath(result.storagePath);
+      setZipProgress(100);
     } catch (err: any) {
-      setMessage({
-        text: err.message || "Failed to upload ZIP file to storage.",
-        type: "error",
-      });
+      console.error("ZIP storage upload error:", err);
+      setZipError(err.message || "Failed to upload ZIP archive to private storage.");
     } finally {
       setIsUploadingZip(false);
     }
   };
 
+  // Publish Product to Marketplace
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isLoading) return;
@@ -300,18 +310,17 @@ export default function NewProductPage() {
       return;
     }
 
-    const resolvedImage = imageUrl.trim() || localImagePreview.trim();
-    if (!resolvedImage) {
+    if (!imageUrl.trim()) {
       setMessage({
-        text: "Please upload a product preview image from your computer.",
+        text: "Please select and upload an actual product preview image.",
         type: "error",
       });
       return;
     }
 
-    if (!stlStoragePath.trim() && !stlFileName.trim()) {
+    if (!stlStoragePath.trim()) {
       setMessage({
-        text: "Please upload the primary 3D STL / 3MF printable model file.",
+        text: "Please select and upload the primary 3D STL / 3MF model file.",
         type: "error",
       });
       return;
@@ -319,16 +328,13 @@ export default function NewProductPage() {
 
     if (isUploadingImage || isUploadingStl || isUploadingZip) {
       setMessage({
-        text: "Files are still actively uploading. Please wait for the upload to complete.",
+        text: "File uploads are still in progress. Please wait for completion before publishing.",
         type: "error",
       });
       return;
     }
 
     setIsLoading(true);
-
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 20000);
 
     try {
       const cleanSlug =
@@ -348,9 +354,7 @@ export default function NewProductPage() {
         JPY: 1.69658,
       };
 
-      const resolvedStlPath =
-        stlStoragePath || `products/${cleanSlug}/${stlFileName.trim() || "model.stl"}`;
-
+      // Lightweight JSON payload (< 3 KB) - never exceeds Vercel limits
       const payload = {
         title: title.trim(),
         slug: cleanSlug,
@@ -373,13 +377,13 @@ export default function NewProductPage() {
           AUD: convertedPrices.AUD,
           JPY: convertedPrices.JPY,
         },
-        images: [resolvedImage],
+        images: [imageUrl.trim()],
         files: [
           {
             fileName: stlFileName.trim() || "model.stl",
-            fileType: "STL",
+            fileType: stlFileName.endsWith(".3mf") ? "THREE_MF" : stlFileName.endsWith(".obj") ? "OBJ" : "STL",
             fileSizeBytes: stlFileSize || 45000000,
-            storagePath: resolvedStlPath,
+            storagePath: stlStoragePath,
           },
           ...(zipFileName.trim() && zipStoragePath
             ? [
@@ -394,36 +398,40 @@ export default function NewProductPage() {
         ],
       };
 
-      const res = await fetch("/api/admin/products", {
+      const res = await safeFetchJson<{ product: any }>("/api/admin/products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
-        signal: controller.signal,
       });
 
-      clearTimeout(timeoutId);
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to create product.");
+      if (!res.success) {
+        throw new Error(res.error || res.message || "Failed to publish product.");
       }
 
-      setMessage({ text: "Product successfully published to The Print Factory!", type: "success" });
+      setMessage({
+        text: "Product successfully published to The Print Factory marketplace!",
+        type: "success",
+      });
+
       setTimeout(() => {
         router.push("/admin/products");
       }, 1200);
     } catch (err: any) {
-      clearTimeout(timeoutId);
-      const isAbort = err.name === "AbortError";
       setMessage({
-        text: isAbort
-          ? "Request timed out after 20 seconds. Please check your network connection and try again."
-          : err.message || "An unexpected error occurred while publishing the product.",
+        text: err.message || "An unexpected error occurred while publishing the product.",
         type: "error",
       });
       setIsLoading(false);
     }
   };
+
+  const isPublishDisabled =
+    isLoading ||
+    isUploadingImage ||
+    isUploadingStl ||
+    isUploadingZip ||
+    !imageUrl.trim() ||
+    !stlStoragePath.trim();
 
   return (
     <div className="min-h-screen bg-zinc-50/50 pb-16">
@@ -441,7 +449,7 @@ export default function NewProductPage() {
             Add New 3D Printable Product
           </h1>
           <p className="text-xs text-zinc-500 mt-0.5">
-            Configure product metadata, multi-currency independent pricing, and digital STL file attachments.
+            Upload genuine 3D printable files, configure INR base pricing with live conversion, and publish to the marketplace.
           </p>
         </div>
 
@@ -772,10 +780,10 @@ export default function NewProductPage() {
                 <Upload className="w-4 h-4 text-blue-600" />
                 3. Visual Previews & Downloadable Files
               </h2>
-              <span className="text-[11px] text-zinc-400">Direct upload to secure storage</span>
+              <span className="text-[11px] text-zinc-400">Direct upload to Supabase Storage</span>
             </div>
 
-            {/* Product Preview Image Card */}
+            {/* 1. Product Preview Image Card */}
             <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-4 sm:p-5 space-y-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -789,12 +797,12 @@ export default function NewProductPage() {
                 </div>
 
                 {isUploadingImage ? (
-                  <span className="text-[11px] text-blue-600 flex items-center gap-1 font-semibold">
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" /> Uploading image...
+                  <span className="text-[11px] text-blue-600 flex items-center gap-1.5 font-semibold">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" /> Uploading: {imageProgress}%
                   </span>
                 ) : (localImagePreview || imageUrl) ? (
                   <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                    <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Image Ready
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Image Ready ({formatBytes(imageFileSize)})
                   </span>
                 ) : (
                   <span className="text-[11px] text-amber-600 font-semibold">
@@ -802,6 +810,24 @@ export default function NewProductPage() {
                   </span>
                 )}
               </div>
+
+              {/* Error Banner */}
+              {imageError && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700 flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+                  <span>{imageError}</span>
+                </div>
+              )}
+
+              {/* Progress Bar */}
+              {isUploadingImage && (
+                <div className="w-full bg-zinc-200 rounded-full h-1.5 overflow-hidden">
+                  <div
+                    className="bg-blue-600 h-1.5 rounded-full transition-all duration-150"
+                    style={{ width: `${imageProgress}%` }}
+                  />
+                </div>
+              )}
 
               {/* Hidden File Input */}
               <input
@@ -834,21 +860,22 @@ export default function NewProductPage() {
                         {imageFileName || "Uploaded Preview Image"}
                       </span>
                       <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
-                        Ready
+                        {imageUrl ? "Uploaded to Storage" : "Ready"}
                       </span>
                     </div>
-                    <p className="text-[11px] text-zinc-500">
-                      Live preview active · Formatted for marketplace catalog and product details.
+                    <p className="text-[11px] text-zinc-500 font-mono">
+                      {formatBytes(imageFileSize)} · Stored in stl-images-public
                     </p>
 
                     <div className="pt-2 flex items-center justify-center sm:justify-start gap-2">
                       <button
                         type="button"
                         onClick={() => imageInputRef.current?.click()}
+                        disabled={isUploadingImage}
                         className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-zinc-700 bg-zinc-100 hover:bg-zinc-200 rounded-lg transition-colors"
                       >
                         <RefreshCw className="w-3 h-3" />
-                        <span>Change Image</span>
+                        <span>Replace Image</span>
                       </button>
 
                       <button
@@ -857,7 +884,9 @@ export default function NewProductPage() {
                           setImageUrl("");
                           setLocalImagePreview("");
                           setImageFileName("");
+                          setImageFileSize(0);
                         }}
+                        disabled={isUploadingImage}
                         className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                       >
                         <X className="w-3 h-3" />
@@ -868,36 +897,30 @@ export default function NewProductPage() {
                 </div>
               ) : (
                 /* Upload Drop Area when no image */
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-                  <div className="md:col-span-8">
-                    <div
-                      onClick={() => imageInputRef.current?.click()}
-                      className="border-2 border-dashed border-zinc-300 hover:border-blue-500 hover:bg-blue-50/30 rounded-xl p-6 text-center cursor-pointer transition-all group"
-                    >
-                      <Upload className="w-7 h-7 text-zinc-400 group-hover:text-blue-600 mx-auto mb-2 transition-colors" />
-                      <p className="text-xs font-bold text-zinc-800">
-                        Click to choose preview image from your computer
-                      </p>
-                      <p className="text-[11px] text-zinc-500 mt-1">
-                        Supports JPG, PNG, and WebP up to 15MB
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Empty Thumbnail Placeholder */}
-                  <div className="md:col-span-4 flex flex-col items-center justify-center">
-                    <div className="relative w-28 h-28 rounded-xl overflow-hidden border border-zinc-200 bg-white shadow-2xs flex flex-col items-center justify-center p-3 text-center">
-                      <ImageIcon className="w-8 h-8 text-zinc-300 mb-1" />
-                      <span className="text-[10px] text-zinc-400 font-medium leading-tight">
-                        No Image Selected
-                      </span>
-                    </div>
-                  </div>
+                <div
+                  onClick={() => imageInputRef.current?.click()}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    const file = e.dataTransfer.files?.[0];
+                    if (file) handleImageFileUpload(file);
+                  }}
+                  className="border-2 border-dashed border-zinc-300 hover:border-blue-500 hover:bg-blue-50/30 rounded-xl p-6 text-center cursor-pointer transition-all group"
+                >
+                  <Upload className="w-8 h-8 text-zinc-400 group-hover:text-blue-600 mx-auto mb-2 transition-colors" />
+                  <p className="text-xs font-bold text-zinc-800">
+                    Click to select preview image from your computer (or drag & drop)
+                  </p>
+                  <p className="text-[11px] text-zinc-500 mt-1">
+                    Accepts JPG, JPEG, PNG, and WebP up to 15MB
+                  </p>
                 </div>
               )}
             </div>
 
-            {/* Primary 3D STL Model File Upload */}
+            {/* 2. Primary 3D STL Model File Upload */}
             <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-4 sm:p-5 space-y-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -906,13 +929,13 @@ export default function NewProductPage() {
                     Primary 3D STL / 3MF Model File *
                   </label>
                   <p className="text-[11px] text-zinc-500 mt-0.5">
-                    This raw binary 3D model file is securely stored and streamed to paying customers.
+                    Direct binary upload to secure private storage (stl-files-private).
                   </p>
                 </div>
 
                 {isUploadingStl ? (
-                  <span className="text-[11px] text-blue-600 flex items-center gap-1 font-semibold">
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" /> Uploading STL to storage...
+                  <span className="text-[11px] text-blue-600 flex items-center gap-1.5 font-semibold">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" /> Uploading: {stlProgress}%
                   </span>
                 ) : stlStoragePath ? (
                   <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">
@@ -925,6 +948,36 @@ export default function NewProductPage() {
                 )}
               </div>
 
+              {/* Error Banner */}
+              {stlError && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700 flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+                  <span>{stlError}</span>
+                </div>
+              )}
+
+              {/* Progress Bar */}
+              {isUploadingStl && (
+                <div className="w-full bg-zinc-200 rounded-full h-1.5 overflow-hidden">
+                  <div
+                    className="bg-emerald-600 h-1.5 rounded-full transition-all duration-150"
+                    style={{ width: `${stlProgress}%` }}
+                  />
+                </div>
+              )}
+
+              {/* Hidden STL File Input */}
+              <input
+                ref={stlInputRef}
+                type="file"
+                accept=".stl,.obj,.3mf"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleStlFileUpload(file);
+                }}
+                className="hidden"
+              />
+
               {stlStoragePath ? (
                 <div className="bg-white border border-emerald-300 rounded-xl p-4 flex items-center justify-between shadow-2xs">
                   <div className="flex items-center gap-3 min-w-0">
@@ -934,51 +987,62 @@ export default function NewProductPage() {
                     <div className="min-w-0">
                       <p className="text-xs font-bold text-zinc-900 truncate">{stlFileName}</p>
                       <p className="text-[11px] text-zinc-500">
-                        {formatBytes(stlFileSize)} · Stored at: <span className="font-mono text-zinc-400">{stlStoragePath}</span>
+                        {formatBytes(stlFileSize)} · Stored securely in <span className="font-mono text-emerald-700">stl-files-private</span>
                       </p>
                     </div>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setStlStoragePath("");
-                      setStlFileName("");
-                      setStlFileSize(0);
-                    }}
-                    className="p-1.5 text-zinc-400 hover:text-red-600 rounded-md transition-colors"
-                    title="Remove file"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => stlInputRef.current?.click()}
+                      disabled={isUploadingStl}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-zinc-700 bg-zinc-100 hover:bg-zinc-200 rounded-lg transition-colors"
+                    >
+                      <RefreshCw className="w-3 h-3" />
+                      <span>Replace</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setStlStoragePath("");
+                        setStlFileName("");
+                        setStlFileSize(0);
+                      }}
+                      disabled={isUploadingStl}
+                      className="p-1.5 text-zinc-400 hover:text-red-600 rounded-md transition-colors"
+                      title="Remove file"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <div
                   onClick={() => stlInputRef.current?.click()}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    const file = e.dataTransfer.files?.[0];
+                    if (file) handleStlFileUpload(file);
+                  }}
                   className="border-2 border-dashed border-zinc-300 hover:border-emerald-500 hover:bg-emerald-50/30 rounded-xl p-6 text-center cursor-pointer transition-all group"
                 >
-                  <input
-                    ref={stlInputRef}
-                    type="file"
-                    accept=".stl,.obj,.3mf"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) handleStlFileUpload(file);
-                    }}
-                    className="hidden"
-                  />
                   <FileCode className="w-8 h-8 text-zinc-400 group-hover:text-emerald-600 mx-auto mb-2 transition-colors" />
                   <p className="text-xs font-bold text-zinc-800">
-                    Click to select .STL / .3MF file from your computer
+                    Click to select .STL / .3MF / .OBJ file from your computer (or drag & drop)
                   </p>
                   <p className="text-[11px] text-zinc-500 mt-1">
-                    Supports binary .STL, .3MF, and .OBJ up to 150MB
+                    Accepts genuine .STL, .3MF, and .OBJ binary models up to 150MB
                   </p>
                 </div>
               )}
             </div>
 
-            {/* Optional ZIP Archive Card */}
+            {/* 3. Optional ZIP Archive Card */}
             <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-4 sm:p-5 space-y-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -987,13 +1051,13 @@ export default function NewProductPage() {
                     Complete ZIP Package Archive (Optional)
                   </label>
                   <p className="text-[11px] text-zinc-500 mt-0.5">
-                    Optional bundle containing pre-supported files, multiple variations, and instructions.
+                    Optional bundle containing pre-supported files, variations, and printing guide.
                   </p>
                 </div>
 
                 {isUploadingZip ? (
-                  <span className="text-[11px] text-blue-600 flex items-center gap-1 font-semibold">
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" /> Uploading ZIP...
+                  <span className="text-[11px] text-blue-600 flex items-center gap-1.5 font-semibold">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" /> Uploading: {zipProgress}%
                   </span>
                 ) : zipStoragePath ? (
                   <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800">
@@ -1001,6 +1065,36 @@ export default function NewProductPage() {
                   </span>
                 ) : null}
               </div>
+
+              {/* Error Banner */}
+              {zipError && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700 flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+                  <span>{zipError}</span>
+                </div>
+              )}
+
+              {/* Progress Bar */}
+              {isUploadingZip && (
+                <div className="w-full bg-zinc-200 rounded-full h-1.5 overflow-hidden">
+                  <div
+                    className="bg-amber-600 h-1.5 rounded-full transition-all duration-150"
+                    style={{ width: `${zipProgress}%` }}
+                  />
+                </div>
+              )}
+
+              {/* Hidden ZIP File Input */}
+              <input
+                ref={zipInputRef}
+                type="file"
+                accept=".zip"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleZipFileUpload(file);
+                }}
+                className="hidden"
+              />
 
               {zipStoragePath ? (
                 <div className="bg-white border border-amber-300 rounded-xl p-4 flex items-center justify-between shadow-2xs">
@@ -1011,45 +1105,56 @@ export default function NewProductPage() {
                     <div className="min-w-0">
                       <p className="text-xs font-bold text-zinc-900 truncate">{zipFileName}</p>
                       <p className="text-[11px] text-zinc-500">
-                        {formatBytes(zipFileSize)} · Stored at: <span className="font-mono text-zinc-400">{zipStoragePath}</span>
+                        {formatBytes(zipFileSize)} · Stored securely in <span className="font-mono text-amber-700">stl-files-private</span>
                       </p>
                     </div>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setZipStoragePath("");
-                      setZipFileName("");
-                      setZipFileSize(0);
-                    }}
-                    className="p-1.5 text-zinc-400 hover:text-red-600 rounded-md transition-colors"
-                    title="Remove archive"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => zipInputRef.current?.click()}
+                      disabled={isUploadingZip}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-zinc-700 bg-zinc-100 hover:bg-zinc-200 rounded-lg transition-colors"
+                    >
+                      <RefreshCw className="w-3 h-3" />
+                      <span>Replace</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setZipStoragePath("");
+                        setZipFileName("");
+                        setZipFileSize(0);
+                      }}
+                      disabled={isUploadingZip}
+                      className="p-1.5 text-zinc-400 hover:text-red-600 rounded-md transition-colors"
+                      title="Remove archive"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <div
                   onClick={() => zipInputRef.current?.click()}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    const file = e.dataTransfer.files?.[0];
+                    if (file) handleZipFileUpload(file);
+                  }}
                   className="border-2 border-dashed border-zinc-300 hover:border-amber-500 hover:bg-amber-50/30 rounded-xl p-4 text-center cursor-pointer transition-all group"
                 >
-                  <input
-                    ref={zipInputRef}
-                    type="file"
-                    accept=".zip,.rar,.7z"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) handleZipFileUpload(file);
-                    }}
-                    className="hidden"
-                  />
                   <FileArchive className="w-6 h-6 text-zinc-400 group-hover:text-amber-600 mx-auto mb-1.5 transition-colors" />
                   <p className="text-xs font-bold text-zinc-800">
-                    Click to select .ZIP archive (optional)
+                    Click to select .ZIP archive from your computer (or drag & drop)
                   </p>
                   <p className="text-[10px] text-zinc-500 mt-0.5">
-                    Multi-part ZIP, 7Z, RAR up to 250MB
+                    Supports .ZIP archives up to 250MB
                   </p>
                 </div>
               )}
@@ -1080,13 +1185,15 @@ export default function NewProductPage() {
               variant="primary"
               size="lg"
               isLoading={isLoading}
-              disabled={isLoading || isUploadingImage || isUploadingStl || isUploadingZip}
+              disabled={isPublishDisabled}
               className="w-full text-sm font-bold shadow-md bg-zinc-950 text-white hover:bg-zinc-800 active:bg-zinc-900 transition-all py-3.5 h-auto disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading
                 ? "Publishing Product to The Print Factory..."
                 : isUploadingStl || isUploadingImage || isUploadingZip
                 ? "Uploading Files to Storage..."
+                : isPublishDisabled
+                ? "Upload Image and STL Model to Publish"
                 : "Publish Product to Marketplace"}
             </Button>
           </div>
