@@ -15,6 +15,118 @@ export interface ClientUploadOptions {
   onProgress?: (percent: number) => void;
 }
 
+function formatBytes(bytes: number): string {
+  if (!bytes || bytes <= 0) return "0 MB";
+  const mb = bytes / (1024 * 1024);
+  if (mb < 0.1) return `${(bytes / 1024).toFixed(0)} KB`;
+  return `${mb.toFixed(1)} MB`;
+}
+
+function parseStorageErrorMessage(
+  responseText: string,
+  status: number,
+  fileSize: number,
+  uploadType: string
+): string {
+  let detail = "";
+  try {
+    const json = JSON.parse(responseText);
+    detail = json.message || json.error || json.msg || "";
+  } catch {
+    detail = responseText ? responseText.slice(0, 250) : "";
+  }
+
+  const lower = detail.toLowerCase();
+
+  // Storage provider plan limit exceeded (e.g. Supabase Free Tier 50 MB limit)
+  if (
+    lower.includes("exceeded the maximum allowed size") ||
+    lower.includes("payload too large") ||
+    lower.includes("entity too large") ||
+    lower.includes("exceeds the limit") ||
+    lower.includes("file_size_limit")
+  ) {
+    if (uploadType === "zip") {
+      return `The ZIP package (${formatBytes(
+        fileSize
+      )}) exceeds the storage provider's active plan limit (50 MB on Supabase Free Tier). To upload archives up to 250 MB, upgrade your Supabase project to Pro, or compress the package under 50 MB.`;
+    }
+    return `File size (${formatBytes(
+      fileSize
+    )}) exceeds the maximum allowed upload limit of the storage provider.`;
+  }
+
+  if (
+    lower.includes("invalidjwt") ||
+    lower.includes("invalid compact jws") ||
+    lower.includes("jwt") ||
+    lower.includes("token")
+  ) {
+    return "Upload authorization token expired or invalid. Please select the file again.";
+  }
+
+  if (detail) {
+    return `Storage error (${status}): ${detail}`;
+  }
+
+  return `Direct storage upload failed with HTTP status ${status}: Upload rejected by storage.`;
+}
+
+/**
+ * Low-level XMLHttpRequest runner with live progress tracking
+ */
+function performXhrUpload({
+  url,
+  method = "PUT",
+  body,
+  headers = {},
+  onProgress,
+}: {
+  url: string;
+  method?: string;
+  body: XMLHttpRequestBodyInit;
+  headers?: Record<string, string>;
+  onProgress?: (percent: number) => void;
+}): Promise<{ status: number; statusText: string; responseText: string }> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open(method, url, true);
+
+    for (const [key, value] of Object.entries(headers)) {
+      if (value) {
+        xhr.setRequestHeader(key, value);
+      }
+    }
+
+    if (onProgress) {
+      xhr.upload.onprogress = (evt) => {
+        if (evt.lengthComputable) {
+          const percent = Math.min(99, Math.round((evt.loaded / evt.total) * 100));
+          onProgress(percent);
+        }
+      };
+    }
+
+    xhr.onload = () => {
+      resolve({
+        status: xhr.status,
+        statusText: xhr.statusText,
+        responseText: xhr.responseText || "",
+      });
+    };
+
+    xhr.onerror = () => {
+      reject(new Error("Network connection error during file upload to storage."));
+    };
+
+    xhr.ontimeout = () => {
+      reject(new Error("Storage upload timed out. Please retry."));
+    };
+
+    xhr.send(body);
+  });
+}
+
 /**
  * Uploads large binary files directly to Supabase Storage using secure short-lived signed URLs.
  * Bypasses Vercel's 4.5 MB request-body limit entirely and reports real progress percentages.
@@ -53,44 +165,78 @@ export async function uploadFileToStorage({
 
   // 2. Direct upload to Supabase Storage
   if (mode === "direct" && signedUrl) {
-    await new Promise<void>((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhr.open("PUT", signedUrl, true);
-      xhr.setRequestHeader("Content-Type", contentType || file.type || "application/octet-stream");
-      xhr.setRequestHeader("x-upsert", "true");
+    if (uploadType === "zip") {
+      // ZIP files: Attempt 1 with official Supabase Storage JS SDK format (FormData)
+      const formData = new FormData();
+      formData.append("cacheControl", "3600");
+      formData.append("", file);
 
-      if (onProgress) {
-        xhr.upload.onprogress = (evt) => {
-          if (evt.lengthComputable) {
-            const percent = Math.min(99, Math.round((evt.loaded / evt.total) * 100));
-            onProgress(percent);
-          }
-        };
-      }
+      let res = await performXhrUpload({
+        url: signedUrl,
+        method: "PUT",
+        body: formData,
+        headers: {
+          "x-upsert": "true",
+        },
+        onProgress,
+      });
 
-      xhr.onload = () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          if (onProgress) onProgress(100);
-          resolve();
-        } else {
-          reject(
-            new Error(
-              `Direct storage upload failed with HTTP status ${xhr.status}: ${xhr.statusText || "Upload rejected by storage"}`
-            )
+      if (res.status >= 200 && res.status < 300) {
+        if (onProgress) onProgress(100);
+      } else {
+        // If rejected because of provider file size limit, immediately throw descriptive error
+        const isSizeError =
+          res.responseText.toLowerCase().includes("exceeded the maximum allowed size") ||
+          res.responseText.toLowerCase().includes("payload too large") ||
+          res.responseText.toLowerCase().includes("entity too large");
+
+        if (isSizeError) {
+          throw new Error(
+            parseStorageErrorMessage(res.responseText, res.status, file.size, uploadType)
           );
         }
-      };
 
-      xhr.onerror = () => {
-        reject(new Error("Network error occurred during direct storage upload. Please check connection."));
-      };
+        // Attempt 2: Universal binary stream with application/octet-stream
+        res = await performXhrUpload({
+          url: signedUrl,
+          method: "PUT",
+          body: file,
+          headers: {
+            "Content-Type": "application/octet-stream",
+            "x-upsert": "true",
+          },
+          onProgress,
+        });
 
-      xhr.ontimeout = () => {
-        reject(new Error("Storage upload timed out. Please retry."));
-      };
+        if (res.status >= 200 && res.status < 300) {
+          if (onProgress) onProgress(100);
+        } else {
+          throw new Error(
+            parseStorageErrorMessage(res.responseText, res.status, file.size, uploadType)
+          );
+        }
+      }
+    } else {
+      // For image and STL: Preserved original direct upload logic
+      const res = await performXhrUpload({
+        url: signedUrl,
+        method: "PUT",
+        body: file,
+        headers: {
+          "Content-Type": contentType || file.type || "application/octet-stream",
+          "x-upsert": "true",
+        },
+        onProgress,
+      });
 
-      xhr.send(file);
-    });
+      if (res.status >= 200 && res.status < 300) {
+        if (onProgress) onProgress(100);
+      } else {
+        throw new Error(
+          parseStorageErrorMessage(res.responseText, res.status, file.size, uploadType)
+        );
+      }
+    }
 
     return {
       storagePath,
