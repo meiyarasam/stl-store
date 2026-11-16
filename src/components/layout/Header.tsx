@@ -28,6 +28,13 @@ export function Header() {
 
   const isAdmin = (session?.user as any)?.role === "ADMIN";
 
+  const handleSignOut = async () => {
+    setAccountMenuOpen(false);
+    setMobileMenuOpen(false);
+    await signOut({ redirect: false });
+    window.location.href = "/";
+  };
+
   const navLinks = [
     { label: "Home", href: "/" },
     { label: "Explore", href: "/products" },
@@ -178,10 +185,7 @@ export function Header() {
 
                     <div className="border-t border-zinc-100 my-1" />
                     <button
-                      onClick={() => {
-                        setAccountMenuOpen(false);
-                        signOut({ callbackUrl: "/" });
-                      }}
+                      onClick={handleSignOut}
                       className="w-full text-left flex items-center gap-2 px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors"
                     >
                       <LogOut className="w-3.5 h-3.5" />
@@ -244,7 +248,52 @@ export function Header() {
             ))}
           </div>
 
-          {!session?.user && (
+          {session?.user ? (
+            <div className="pt-2 border-t border-zinc-100 space-y-2">
+              <div className="px-3 py-1 text-xs text-zinc-500 font-medium">
+                Signed in as <span className="font-semibold text-zinc-900">{session.user.name || session.user.email}</span>
+              </div>
+              <div className="space-y-1">
+                {isAdmin && (
+                  <Link
+                    href="/admin"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block px-3 py-2 text-sm font-semibold text-amber-700 hover:bg-amber-50 rounded-md"
+                  >
+                    Admin Dashboard
+                  </Link>
+                )}
+                <Link
+                  href="/account"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block px-3 py-2 text-sm font-medium text-zinc-800 hover:bg-zinc-100 rounded-md"
+                >
+                  My Account
+                </Link>
+                <Link
+                  href="/account/orders"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block px-3 py-2 text-sm font-medium text-zinc-800 hover:bg-zinc-100 rounded-md"
+                >
+                  My Orders
+                </Link>
+                <Link
+                  href="/account/downloads"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block px-3 py-2 text-sm font-medium text-emerald-700 hover:bg-emerald-50 rounded-md"
+                >
+                  My Downloads
+                </Link>
+                <button
+                  onClick={handleSignOut}
+                  className="w-full text-left flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md font-medium"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Sign Out
+                </button>
+              </div>
+            </div>
+          ) : (
             <div className="pt-2 border-t border-zinc-100 flex gap-2">
               <Link
                 href="/login"

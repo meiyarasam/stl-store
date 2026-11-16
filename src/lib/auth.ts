@@ -104,6 +104,24 @@ export const authOptions: NextAuthOptions = {
 
       return session;
     },
+
+    async redirect({ url, baseUrl }) {
+      // Allows relative callback URLs on the current origin
+      if (url.startsWith("/")) {
+        return `${baseUrl}${url}`;
+      }
+      // Allows callback URLs on the same origin
+      try {
+        const urlObj = new URL(url);
+        const baseObj = new URL(baseUrl);
+        if (urlObj.origin === baseObj.origin) {
+          return url;
+        }
+      } catch {
+        // invalid URL fallback
+      }
+      return baseUrl;
+    },
   },
 
   pages: {

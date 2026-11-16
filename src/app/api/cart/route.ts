@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/authOptions";
-import prisma, { isDatabaseReachable } from "@/lib/prisma";
+import { isDatabaseReachable, prisma } from "@/lib/prisma";
 
 export async function GET(req: NextRequest) {
   try {
