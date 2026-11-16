@@ -19,10 +19,14 @@ export default prisma;
 
 export async function isDatabaseReachable(): Promise<boolean> {
   try {
-    await prisma.$queryRaw`SELECT 1`;
+    const probe = prisma.$queryRaw`SELECT 1`;
+    const timeout = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("Database probe timeout")), 4000)
+    );
+    await Promise.race([probe, timeout]);
     return true;
   } catch (error) {
-    console.error("Database connection failed:", error);
+    console.warn("Database connection probe notice:", error);
     return false;
   }
 }
