@@ -5,10 +5,9 @@ import { authOptions } from "@/lib/auth/authOptions";
 import { redirect } from "next/navigation";
 import { AdminNav } from "@/components/admin/AdminNav";
 import prisma, { isDatabaseReachable } from "@/lib/database/prisma";
-import { getAllLocalDevOrders } from "@/lib/database/userStore";
 import { formatPrice } from "@/lib/currency/currencies";
 import { CurrencyCode } from "@/types";
-import { ShieldCheck, Search, Filter } from "lucide-react";
+import { ShieldCheck, Search, Filter, ShoppingBag } from "lucide-react";
 
 export default async function AdminOrdersPage({
   searchParams,
@@ -45,10 +44,6 @@ export default async function AdminOrdersPage({
     }
   }
 
-  if (orders.length === 0) {
-    const devOrders = getAllLocalDevOrders();
-    orders = devOrders;
-  }
 
   return (
     <div className="min-h-screen bg-zinc-50/50">
@@ -107,69 +102,79 @@ export default async function AdminOrdersPage({
         </div>
 
         {/* Orders Table */}
-        <div className="bg-white border border-zinc-200 rounded-xl overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-zinc-50 border-b border-zinc-200 text-zinc-500 uppercase tracking-wider">
-                <tr>
-                  <th className="py-3 px-4">Order Ref</th>
-                  <th className="py-3 px-4">Customer</th>
-                  <th className="py-3 px-4">Products</th>
-                  <th className="py-3 px-4">Amount</th>
-                  <th className="py-3 px-4">Gateway Status</th>
-                  <th className="py-3 px-4">Date</th>
-                  <th className="py-3 px-4 text-right">Details</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-zinc-100">
-                {orders.map((o) => (
-                  <tr key={o.id} className="hover:bg-zinc-50/50">
-                    <td className="py-3.5 px-4 font-mono font-bold text-zinc-950">
-                      #{o.orderNumber}
-                    </td>
-                    <td className="py-3.5 px-4">
-                      <span className="font-semibold text-zinc-900 block truncate max-w-xs">
-                        {o.customerName}
-                      </span>
-                      <span className="text-zinc-500 text-[11px] block truncate max-w-xs">
-                        {o.customerEmail} ({o.customerCountry})
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-4 text-zinc-700">
-                      {o.items?.map((it: any) => it.productTitle).join(", ") || "3D STL Bundle"}
-                    </td>
-                    <td className="py-3.5 px-4 font-mono font-bold text-zinc-950">
-                      {formatPrice(Number(o.total), o.currency as CurrencyCode)}
-                    </td>
-                    <td className="py-3.5 px-4">
-                      <span
-                        className={`inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full ${
-                          o.paymentStatus === "PAID"
-                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                            : "bg-amber-50 text-amber-700 border border-amber-200"
-                        }`}
-                      >
-                        <ShieldCheck className="w-3 h-3" />
-                        {o.paymentStatus}
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-4 text-zinc-500 font-medium" suppressHydrationWarning>
-                      {new Date(o.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
-                    </td>
-                    <td className="py-3.5 px-4 text-right">
-                      <Link
-                        href={`/payment/success?orderId=${o.id}`}
-                        className="text-zinc-700 hover:text-zinc-950 font-semibold hover:underline"
-                      >
-                        Receipt
-                      </Link>
-                    </td>
+        {orders.length > 0 ? (
+          <div className="bg-white border border-zinc-200 rounded-xl overflow-hidden shadow-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-zinc-50 border-b border-zinc-200 text-zinc-500 uppercase tracking-wider">
+                  <tr>
+                    <th className="py-3 px-4">Order Ref</th>
+                    <th className="py-3 px-4">Customer</th>
+                    <th className="py-3 px-4">Products</th>
+                    <th className="py-3 px-4">Amount</th>
+                    <th className="py-3 px-4">Gateway Status</th>
+                    <th className="py-3 px-4">Date</th>
+                    <th className="py-3 px-4 text-right">Details</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-zinc-100">
+                  {orders.map((o) => (
+                    <tr key={o.id} className="hover:bg-zinc-50/50">
+                      <td className="py-3.5 px-4 font-mono font-bold text-zinc-950">
+                        #{o.orderNumber}
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <span className="font-semibold text-zinc-900 block truncate max-w-xs">
+                          {o.customerName}
+                        </span>
+                        <span className="text-zinc-500 text-[11px] block truncate max-w-xs">
+                          {o.customerEmail} ({o.customerCountry})
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-4 text-zinc-700">
+                        {o.items?.map((it: any) => it.productTitle).join(", ") || "3D STL Bundle"}
+                      </td>
+                      <td className="py-3.5 px-4 font-mono font-bold text-zinc-950">
+                        {formatPrice(Number(o.total), o.currency as CurrencyCode)}
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <span
+                          className={`inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full ${
+                            o.paymentStatus === "PAID"
+                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                              : "bg-amber-50 text-amber-700 border border-amber-200"
+                          }`}
+                        >
+                          <ShieldCheck className="w-3 h-3" />
+                          {o.paymentStatus}
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-4 text-zinc-500 font-medium" suppressHydrationWarning>
+                        {new Date(o.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
+                      </td>
+                      <td className="py-3.5 px-4 text-right">
+                        <Link
+                          href={`/payment/success?orderId=${o.id}`}
+                          className="text-zinc-700 hover:text-zinc-950 font-semibold hover:underline"
+                        >
+                          Receipt
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="bg-white border border-dashed border-zinc-200 rounded-2xl p-12 text-center">
+            <ShoppingBag className="w-10 h-10 text-zinc-300 mx-auto mb-3" />
+            <h3 className="text-sm font-bold text-zinc-900">No Orders in Database Yet</h3>
+            <p className="text-xs text-zinc-500 max-w-md mx-auto mt-1">
+              Customer checkout transactions from Supabase PostgreSQL will be displayed here in real time. No dummy or simulated orders are shown.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

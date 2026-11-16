@@ -5,7 +5,6 @@ import { authOptions } from "@/lib/auth/authOptions";
 import { redirect } from "next/navigation";
 import { AdminNav } from "@/components/admin/AdminNav";
 import prisma, { isDatabaseReachable } from "@/lib/database/prisma";
-import { getAllLocalDevOrders } from "@/lib/database/userStore";
 import { formatPrice } from "@/lib/currency/currencies";
 import { CurrencyCode } from "@/types";
 import { ShieldCheck, Search, CreditCard, ArrowUpRight } from "lucide-react";
@@ -45,22 +44,6 @@ export default async function AdminPaymentsPage({
     }
   }
 
-  if (payments.length === 0) {
-    const devOrders = getAllLocalDevOrders();
-    payments = devOrders
-      .filter((o) => o.razorpayPaymentId || o.paymentStatus === "PAID")
-      .map((o) => ({
-        id: `pay_${o.id}`,
-        razorpayPaymentId: o.razorpayPaymentId || `pay_rzp_${o.orderNumber}`,
-        razorpayOrderId: o.razorpayOrderId || `order_rzp_${o.orderNumber}`,
-        amount: o.total,
-        currency: o.currency,
-        status: o.paymentStatus,
-        paymentMethod: o.paymentMethod || "Razorpay Standard Checkout",
-        createdAt: o.createdAt,
-        order: o,
-      }));
-  }
 
   return (
     <div className="min-h-screen bg-zinc-50/50">
@@ -98,23 +81,23 @@ export default async function AdminPaymentsPage({
         </div>
 
         {/* Payments Table */}
-        <div className="bg-white border border-zinc-200 rounded-xl overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-zinc-50 border-b border-zinc-200 text-zinc-500 uppercase tracking-wider">
-                <tr>
-                  <th className="py-3 px-4">Razorpay Payment ID</th>
-                  <th className="py-3 px-4">Razorpay Order ID</th>
-                  <th className="py-3 px-4">Customer Order</th>
-                  <th className="py-3 px-4">Amount</th>
-                  <th className="py-3 px-4">Method</th>
-                  <th className="py-3 px-4">Status</th>
-                  <th className="py-3 px-4">Date</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-zinc-100">
-                {payments.length > 0 ? (
-                  payments.map((p) => (
+        {payments.length > 0 ? (
+          <div className="bg-white border border-zinc-200 rounded-xl overflow-hidden shadow-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-zinc-50 border-b border-zinc-200 text-zinc-500 uppercase tracking-wider">
+                  <tr>
+                    <th className="py-3 px-4">Razorpay Payment ID</th>
+                    <th className="py-3 px-4">Razorpay Order ID</th>
+                    <th className="py-3 px-4">Customer Order</th>
+                    <th className="py-3 px-4">Amount</th>
+                    <th className="py-3 px-4">Method</th>
+                    <th className="py-3 px-4">Status</th>
+                    <th className="py-3 px-4">Date</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-100">
+                  {payments.map((p) => (
                     <tr key={p.id} className="hover:bg-zinc-50/50">
                       <td className="py-3.5 px-4 font-mono font-bold text-zinc-950">
                         {p.razorpayPaymentId}
@@ -147,18 +130,20 @@ export default async function AdminPaymentsPage({
                         {new Date(p.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
                       </td>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={7} className="py-8 text-center text-zinc-400">
-                      No payments recorded yet.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="bg-white border border-dashed border-zinc-200 rounded-2xl p-12 text-center">
+            <CreditCard className="w-10 h-10 text-zinc-300 mx-auto mb-3" />
+            <h3 className="text-sm font-bold text-zinc-900">No Payment Records in Database Yet</h3>
+            <p className="text-xs text-zinc-500 max-w-md mx-auto mt-1">
+              Razorpay gateway transactions and webhook confirmations will appear here once customer payments are captured.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
