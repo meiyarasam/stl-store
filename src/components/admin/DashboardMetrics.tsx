@@ -21,8 +21,8 @@ export function DashboardMetrics({ summary }: DashboardMetricsProps) {
           </span>
           <DollarSign className="w-4 h-4 text-emerald-600" />
         </div>
-        <div className="text-2xl font-black text-zinc-950 font-mono">
-          ${summary.totalRevenueUSD.toLocaleString()}
+        <div className="text-2xl font-black text-zinc-950 font-mono" suppressHydrationWarning>
+          ${new Intl.NumberFormat("en-US").format(summary.totalRevenueUSD)}
         </div>
         <div className="flex items-center text-[11px] text-emerald-600 font-semibold gap-1">
           <TrendingUp className="w-3 h-3" /> +18.4% from last month

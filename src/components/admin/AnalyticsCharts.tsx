@@ -132,9 +132,9 @@ export function AnalyticsCharts({
               <div key={cur.currency} className="space-y-1.5">
                 <div className="flex justify-between text-xs font-semibold">
                   <span className="text-zinc-700">{cur.currency} Volume</span>
-                  <span className="text-zinc-950 font-mono">
+                  <span className="text-zinc-950 font-mono" suppressHydrationWarning>
                     {cur.symbol}
-                    {cur.amount.toLocaleString()}
+                    {new Intl.NumberFormat("en-US").format(cur.amount)}
                   </span>
                 </div>
                 <div className="w-full h-2 rounded-full bg-zinc-100 overflow-hidden">

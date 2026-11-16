@@ -63,8 +63,8 @@ export default async function AccountOrdersPage() {
                   </div>
                   <div>
                     <span className="text-zinc-400 block font-medium">Date</span>
-                    <span className="text-zinc-800 font-medium">
-                      {new Date(order.createdAt).toLocaleDateString()}
+                    <span className="text-zinc-800 font-medium" suppressHydrationWarning>
+                      {new Date(order.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
                     </span>
                   </div>
                   <div>

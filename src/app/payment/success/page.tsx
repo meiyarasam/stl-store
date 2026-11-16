@@ -78,8 +78,10 @@ export default async function PaymentSuccessPage({ searchParams }: PaymentSucces
           </div>
           <div>
             <span className="text-zinc-400 block font-medium">Purchase Date</span>
-            <span className="text-zinc-800 font-medium">
-              {order?.paidAt ? new Date(order.paidAt).toLocaleDateString() : new Date().toLocaleDateString()}
+            <span className="text-zinc-800 font-medium" suppressHydrationWarning>
+              {order?.paidAt
+                ? new Date(order.paidAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })
+                : new Date().toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
             </span>
           </div>
         </div>

@@ -2,111 +2,126 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import prisma, { isDatabaseReachable } from "@/lib/database/prisma";
 import { registerSchema } from "@/lib/validation/schemas";
-import { getLocalDevUser, saveLocalDevUser, StoredUser } from "@/lib/database/userStore";
 
 export async function POST(req: Request) {
   try {
+    // 1. Read request body
     const body = await req.json();
+
+    // 2. Validate registration data
     const validatedData = registerSchema.parse(body);
 
+    // 3. Normalize email
     const email = validatedData.email.toLowerCase().trim();
+
+    // 4. Check database connection
     const dbOnline = await isDatabaseReachable();
 
-    // Check if user already exists
-    let existingUser = null;
-    if (dbOnline) {
-      try {
-        existingUser = await prisma.user.findUnique({
-          where: { email },
-        });
-      } catch (dbErr) {
-        console.warn("Database lookup warning:", dbErr);
-      }
+    if (!dbOnline) {
+      console.error("Database is not reachable.");
+
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Database connection failed. Please try again later.",
+        },
+        { status: 503 }
+      );
     }
 
-    if (!existingUser) {
-      existingUser = getLocalDevUser(email);
-    }
+    // 5. Check whether email already exists
+    const existingUser = await prisma.user.findUnique({
+      where: {
+        email,
+      },
+    });
 
     if (existingUser) {
       return NextResponse.json(
-        { error: "An account with this email address already exists. Please log in." },
+        {
+          success: false,
+          error: "An account with this email already exists. Please log in.",
+        },
         { status: 409 }
       );
     }
 
-    // Hash password securely with bcrypt
-    const passwordHash = await bcrypt.hash(validatedData.password, 12);
+    // 6. Securely hash password
+    const passwordHash = await bcrypt.hash(
+      validatedData.password,
+      12
+    );
 
-    let newUser = null;
-    if (dbOnline) {
-      try {
-        newUser = await prisma.user.create({
-          data: {
-            name: validatedData.name.trim(),
-            email,
-            passwordHash,
-            country: validatedData.country,
-            phoneCountryCode: validatedData.phoneCountryCode,
-            phone: validatedData.phone,
-            role: "CUSTOMER",
-            emailVerified: new Date(),
-          },
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            role: true,
-            country: true,
-          },
-        });
-      } catch (createErr) {
-        console.warn("Prisma user creation error, falling back to local file store:", createErr);
-      }
-    }
-
-    if (!newUser) {
-      const devId = `usr_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-      const devUser: StoredUser = {
-        id: devId,
+    // 7. Create user directly in PostgreSQL
+    const newUser = await prisma.user.create({
+      data: {
         name: validatedData.name.trim(),
-        email,
-        passwordHash,
+        email: email,
+        passwordHash: passwordHash,
         country: validatedData.country,
         phoneCountryCode: validatedData.phoneCountryCode,
         phone: validatedData.phone,
         role: "CUSTOMER",
-        createdAt: new Date().toISOString(),
-      };
-      saveLocalDevUser(devUser);
 
-      newUser = {
-        id: devUser.id,
-        name: devUser.name,
-        email: devUser.email,
-        role: devUser.role,
-        country: devUser.country,
-      };
-    }
+        // Keep this only if your existing registration
+        // process intentionally verifies email immediately.
+        emailVerified: new Date(),
+      },
 
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        country: true,
+        phoneCountryCode: true,
+        phone: true,
+        createdAt: true,
+      },
+    });
+
+    // 8. Return successful response
     return NextResponse.json(
       {
-        message: "Account created successfully",
+        success: true,
+        message: "Account created successfully!",
         user: newUser,
       },
       { status: 201 }
     );
+
   } catch (error: any) {
-    if (error?.errors) {
+
+    // 9. Handle validation errors
+    if (error?.name === "ZodError") {
       return NextResponse.json(
-        { error: error.errors[0]?.message || "Validation failed" },
+        {
+          success: false,
+          error: error.errors?.[0]?.message || "Invalid registration data.",
+        },
         { status: 400 }
       );
     }
 
-    console.error("Registration error:", error);
+    // 10. Handle duplicate email
+    if (error?.code === "P2002") {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "An account with this email already exists.",
+        },
+        { status: 409 }
+      );
+    }
+
+    // 11. Log database and server errors
+    console.error("Registration API Error:", error);
+
     return NextResponse.json(
-      { error: error.message || "Failed to create account" },
+      {
+        success: false,
+        error: "Unable to create account. Please try again.",
+      },
       { status: 500 }
     );
   }

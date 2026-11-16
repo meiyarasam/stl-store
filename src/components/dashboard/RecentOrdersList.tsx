@@ -45,7 +45,7 @@ export function RecentOrdersList({ orders }: RecentOrdersListProps) {
                 </span>
               </div>
               <div className="flex justify-between items-center text-[11px] text-zinc-500">
-                <span>{new Date(o.createdAt).toLocaleDateString()}</span>
+                <span suppressHydrationWarning>{new Date(o.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}</span>
                 <span
                   className={`font-semibold uppercase tracking-wider ${
                     o.paymentStatus === "PAID"

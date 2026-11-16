@@ -131,8 +131,8 @@ export default async function AdminCustomersPage() {
                         </span>
                       )}
                     </td>
-                    <td className="py-3.5 px-4 text-zinc-500">
-                      {new Date(c.createdAt).toLocaleDateString()}
+                    <td className="py-3.5 px-4 text-zinc-500" suppressHydrationWarning>
+                      {new Date(c.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
                     </td>
                   </tr>
                 ))}

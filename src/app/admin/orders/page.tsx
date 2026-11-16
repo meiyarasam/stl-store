@@ -153,8 +153,8 @@ export default async function AdminOrdersPage({
                         {o.paymentStatus}
                       </span>
                     </td>
-                    <td className="py-3.5 px-4 text-zinc-500 font-medium">
-                      {new Date(o.createdAt).toLocaleDateString()}
+                    <td className="py-3.5 px-4 text-zinc-500 font-medium" suppressHydrationWarning>
+                      {new Date(o.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
                     </td>
                     <td className="py-3.5 px-4 text-right">
                       <Link
