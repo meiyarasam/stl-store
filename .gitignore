@@ -38,3 +38,6 @@ yarn-error.log*
 # Keep schema.prisma and migrations in git; do not commit sqlite temp files
 *.sqlite
 *.sqlite-journal
+
+# Local Development Fallback Data
+data/
