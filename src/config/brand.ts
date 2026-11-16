@@ -1,0 +1,18 @@
+export const BRAND = {
+  name: "The Print Factory",
+  fullName: "THE PRINT FACTORY",
+  shortName: "The Print Factory",
+  tagline: "DESIGN. PRINT. CREATE.",
+  subTagline: "International Digital 3D Printing Marketplace",
+  description:
+    "Design. Print. Create. Discover premium 3D printable designs, print-in-place mechanisms, and collectible miniatures. Instant secure digital download.",
+  logoUrl: "/images/logo.png",
+  logoSquare: "/images/logo.png",
+  url: process.env.NEXT_PUBLIC_APP_URL || "https://theprintfactory.com",
+  supportEmail: "support@theprintfactory.com",
+  adminEmail: "admin@theprintfactory.com",
+  ordersEmail: "orders@theprintfactory.com",
+  copyright: `© ${new Date().getFullYear()} The Print Factory. All rights reserved. Precision 3D Digital Assets.`,
+} as const;
+
+export default BRAND;

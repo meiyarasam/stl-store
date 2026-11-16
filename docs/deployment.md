@@ -1,6 +1,6 @@
-# STLForge — Vercel Production Deployment Guide
+# The Print Factory — Vercel Production Deployment Guide
 
-This guide provides end-to-end instructions for deploying the **STLForge** international digital marketplace to [Vercel](https://vercel.com).
+This guide provides end-to-end instructions for deploying the **The Print Factory** international digital marketplace to [Vercel](https://vercel.com).
 
 ---
 
@@ -66,12 +66,12 @@ Under **Environment Variables**, add the following production variables:
 
 | Variable Name | Description | Example / Source |
 | :--- | :--- | :--- |
-| `NEXT_PUBLIC_APP_URL` | Canonical production URL | `https://stlforge.vercel.app` |
+| `NEXT_PUBLIC_APP_URL` | Canonical production URL | `https://The Print Factory.vercel.app` |
 | `DATABASE_URL` | Supabase PgBouncer Pooler URL | `postgresql://postgres.[ref]:[pwd]@pooler.supabase.com:6543/postgres?pgbouncer=true` |
 | `DIRECT_URL` | Supabase Direct Connection URL | `postgresql://postgres.[ref]:[pwd]@pooler.supabase.com:5432/postgres` |
 | `AUTH_SECRET` | NextAuth JWT secret | Random 32+ character string (`openssl rand -base64 32`) |
 | `NEXTAUTH_SECRET` | NextAuth fallback secret | Same as `AUTH_SECRET` |
-| `NEXTAUTH_URL` | NextAuth canonical callback | `https://stlforge.vercel.app` |
+| `NEXTAUTH_URL` | NextAuth canonical callback | `https://The Print Factory.vercel.app` |
 | `RAZORPAY_KEY_ID` | Razorpay Key ID | `rzp_live_...` |
 | `RAZORPAY_KEY_SECRET` | Razorpay Key Secret | From Razorpay API Keys dashboard |
 | `RAZORPAY_WEBHOOK_SECRET` | Secret for webhook verification | Configured in Razorpay Webhooks |
@@ -84,7 +84,7 @@ Under **Environment Variables**, add the following production variables:
 | `SUPABASE_STORAGE_BUCKET_PUBLIC` | Public preview images bucket | `stl-images-public` |
 | `RESEND_API_KEY` | Resend API Key | `re_...` from Resend dashboard |
 | `RESEND_FROM_EMAIL` | Verified sender email | `orders@yourdomain.com` |
-| `ADMIN_DEFAULT_EMAIL` | Administrator login email | `admin@stlforge.com` |
+| `ADMIN_DEFAULT_EMAIL` | Administrator login email | `admin@The Print Factory.com` |
 | `ADMIN_DEFAULT_PASSWORD` | Administrator password | Secure custom password |
 
 ---

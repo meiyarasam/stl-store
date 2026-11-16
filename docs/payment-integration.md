@@ -1,6 +1,6 @@
 # Razorpay Payment Gateway Integration Guide
 
-This document details the complete Razorpay integration architecture implemented in **STLForge**, including domestic UPI, dynamic QR codes, international card payments, server-side Orders API, cryptographic signature verification, and webhook handling.
+This document details the complete Razorpay integration architecture implemented in **The Print Factory**, including domestic UPI, dynamic QR codes, international card payments, server-side Orders API, cryptographic signature verification, and webhook handling.
 
 ---
 
@@ -64,7 +64,7 @@ RAZORPAY_KEY_SECRET="YourTestKeySecret"
 RAZORPAY_WEBHOOK_SECRET="YourCustomWebhookSecret"
 
 # Application Base URL
-NEXT_PUBLIC_APP_URL="https://stlforge.vercel.app"
+NEXT_PUBLIC_APP_URL="https://The Print Factory.vercel.app"
 ```
 
 > **Security Rule:** Never prefix `RAZORPAY_KEY_SECRET` or `RAZORPAY_WEBHOOK_SECRET` with `NEXT_PUBLIC_`. These must remain strictly server-side.
@@ -137,7 +137,7 @@ NEXT_PUBLIC_APP_URL="https://stlforge.vercel.app"
 For eligible Indian transactions in INR (`currency === "INR"`):
 1. The checkout interface generates a dynamic UPI payment string:
    ```
-   upi://pay?pa=meiyarasan@razorpay&pn=STLForge&am=499.00&cu=INR&tn=Order STL-1731737400
+   upi://pay?pa=meiyarasan@razorpay&pn=The Print Factory&am=499.00&cu=INR&tn=Order STL-1731737400
    ```
 2. Renders a scannable dynamic QR code in `UPIQRCodeModal.tsx` using `qrcode` library.
 3. Automatically polls or listens for completion callback to unlock files seamlessly upon bank clearance.

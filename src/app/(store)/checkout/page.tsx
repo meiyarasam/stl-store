@@ -139,16 +139,17 @@ export default function CheckoutPage() {
         key: rzpConfig.keyId,
         amount: rzpConfig.amountSubunits,
         currency: rzpConfig.currency,
-        name: "STLForge",
+        name: "The Print Factory",
         description: `Order #${order.orderNumber} – Digital 3D Files`,
         order_id: rzpConfig.orderId,
+        image: "/images/logo.png",
         prefill: {
           name: fullName,
           email: email,
           contact: phone || undefined,
         },
         theme: {
-          color: "#0f172a", // STLForge charcoal
+          color: "#2563eb", // The Print Factory blue
         },
         handler: async function (response: any) {
           setIsLoading(true);

@@ -18,7 +18,7 @@ export default function PrivacyPolicyPage() {
 
       <div className="prose prose-zinc prose-sm max-w-none text-zinc-600 leading-relaxed space-y-6">
         <p>
-          At STLForge, we respect your personal data and privacy. This Privacy Policy details the types of information we collect and how we utilize and safeguard your information.
+          At The Print Factory, we respect your personal data and privacy. This Privacy Policy details the types of information we collect and how we utilize and safeguard your information.
         </p>
 
         <h2 className="text-lg font-bold text-zinc-950">1. Information We Collect</h2>
@@ -42,7 +42,7 @@ export default function PrivacyPolicyPage() {
 
         <h2 className="text-lg font-bold text-zinc-950">4. Contact Information</h2>
         <p>
-          If you have questions regarding your data or wish to request data deletion under applicable privacy laws, please contact <a href="mailto:privacy@stlforge.com" className="font-semibold text-zinc-900 underline">privacy@stlforge.com</a>.
+          If you have questions regarding your data or wish to request data deletion under applicable privacy laws, please contact <a href="mailto:privacy@theprintfactory.com" className="font-semibold text-zinc-900 underline">privacy@theprintfactory.com</a>.
         </p>
       </div>
     </div>

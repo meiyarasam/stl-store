@@ -6,7 +6,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Layers, Lock, Mail, AlertCircle, Eye, EyeOff } from "lucide-react";
+import { Lock, Mail, AlertCircle, Eye, EyeOff } from "lucide-react";
+import { BrandLogo } from "@/components/common/BrandLogo";
 
 export function LoginForm() {
   const router = useRouter();
@@ -46,17 +47,15 @@ export function LoginForm() {
 
   return (
     <div className="max-w-md w-full space-y-8 bg-white border border-zinc-200 p-8 rounded-2xl shadow-sm">
-      <div className="text-center space-y-2">
-        <Link href="/" className="inline-flex items-center gap-2">
-          <div className="w-10 h-10 rounded-lg bg-zinc-950 text-white flex items-center justify-center font-bold">
-            <Layers className="w-6 h-6" />
-          </div>
-        </Link>
+      <div className="text-center space-y-3">
+        <div className="flex justify-center">
+          <BrandLogo size="md" showTagline={false} />
+        </div>
         <h2 className="text-2xl font-black text-zinc-950 tracking-tight font-display">
-          Sign In to STLForge
+          Sign In to Your Account
         </h2>
         <p className="text-xs text-zinc-500">
-          Access your 3D digital file library and purchase history.
+          Access your 3D digital file library and purchase history at The Print Factory.
         </p>
       </div>
 

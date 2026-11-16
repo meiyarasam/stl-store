@@ -42,9 +42,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   // Initialize from localStorage or browser locale
   useEffect(() => {
     try {
-      const savedCountry = localStorage.getItem("stlforge_country");
-      const savedCurrency = localStorage.getItem("stlforge_currency") as CurrencyCode;
-      const savedCart = localStorage.getItem("stlforge_cart");
+      const savedCountry = localStorage.getItem("theprintfactory_country") || localStorage.getItem("stlforge_country");
+      const savedCurrency = (localStorage.getItem("theprintfactory_currency") || localStorage.getItem("stlforge_currency")) as CurrencyCode;
+      const savedCart = localStorage.getItem("theprintfactory_cart") || localStorage.getItem("stlforge_cart");
 
       if (savedCountry) {
         setCountryState(savedCountry);
@@ -83,6 +83,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!isInitialized) return;
     try {
+      localStorage.setItem("theprintfactory_cart", JSON.stringify(cart));
       localStorage.setItem("stlforge_cart", JSON.stringify(cart));
     } catch (e) {}
   }, [cart, isInitialized]);
@@ -91,6 +92,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const setCountry = (countryCode: string) => {
     setCountryState(countryCode);
     try {
+      localStorage.setItem("theprintfactory_country", countryCode);
       localStorage.setItem("stlforge_country", countryCode);
     } catch (e) {}
 
@@ -104,6 +106,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const setCurrency = (currencyCode: CurrencyCode) => {
     setCurrencyState(currencyCode);
     try {
+      localStorage.setItem("theprintfactory_currency", currencyCode);
+      document.cookie = `theprintfactory_currency=${currencyCode}; path=/; max-age=2592000`;
       localStorage.setItem("stlforge_currency", currencyCode);
       document.cookie = `stlforge_currency=${currencyCode}; path=/; max-age=2592000`;
     } catch (e) {}

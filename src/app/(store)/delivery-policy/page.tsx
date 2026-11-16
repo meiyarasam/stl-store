@@ -19,7 +19,7 @@ export default function DigitalDeliveryPolicyPage() {
 
       <div className="prose prose-zinc prose-sm max-w-none text-zinc-600 leading-relaxed space-y-6">
         <p>
-          STLForge strictly provides digital goods. No physical items, filament spools, or 3D printers will be mailed or physically shipped to your postal address.
+          The Print Factory strictly provides digital goods. No physical items, filament spools, or 3D printers will be mailed or physically shipped to your postal address.
         </p>
 
         <h2 className="text-lg font-bold text-zinc-950">1. Instant Automated Delivery</h2>
@@ -34,12 +34,12 @@ export default function DigitalDeliveryPolicyPage() {
 
         <h2 className="text-lg font-bold text-zinc-950">3. Permanent Account Access</h2>
         <p>
-          Purchased digital assets are securely tied to your registered customer account. You may log in to STLForge at any time, navigate to <strong>My Downloads</strong>, and retrieve your files using fresh, time-limited cryptographic signed URLs.
+          Purchased digital assets are securely tied to your registered customer account. You may log in to The Print Factory at any time, navigate to <strong>My Downloads</strong>, and retrieve your files using fresh, time-limited cryptographic signed URLs.
         </p>
 
         <h2 className="text-lg font-bold text-zinc-950">4. Delivery Troubleshooting</h2>
         <p>
-          If your bank account was debited but your download has not unlocked within 10 minutes due to intermittent gateway delays, please email our support team at <a href="mailto:support@stlforge.com" className="font-semibold text-zinc-900 underline">support@stlforge.com</a> with your Razorpay transaction ID for instant manual clearance.
+          If your bank account was debited but your download has not unlocked within 10 minutes due to intermittent gateway delays, please email our support team at <a href="mailto:support@theprintfactory.com" className="font-semibold text-zinc-900 underline">support@theprintfactory.com</a> with your Razorpay transaction ID for instant manual clearance.
         </p>
       </div>
     </div>

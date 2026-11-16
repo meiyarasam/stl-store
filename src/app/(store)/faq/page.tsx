@@ -10,7 +10,7 @@ export default function FAQPage() {
     },
     {
       q: "How do I download my purchased files?",
-      a: "Immediately following verified payment clearance via Razorpay, you will be redirected to the Order Success page with instant download links. In addition, all your purchased 3D models remain permanently accessible in your STLForge Customer Dashboard under 'My Downloads'.",
+      a: "Immediately following verified payment clearance via Razorpay, you will be redirected to the Order Success page with instant download links. In addition, all your purchased 3D models remain permanently accessible in your The Print Factory Customer Dashboard under 'My Downloads'.",
     },
     {
       q: "What slicers are these models compatible with?",
@@ -18,7 +18,7 @@ export default function FAQPage() {
     },
     {
       q: "Can I sell physical 3D prints of these designs?",
-      a: "Standard purchases come with our Standard Personal Use Licence (non-commercial, physical or digital resale prohibited). If you are interested in commercial mass-production or selling printed versions, please contact our licensing team at licensing@stlforge.com.",
+      a: "Standard purchases come with our Standard Personal Use Licence (non-commercial, physical or digital resale prohibited). If you are interested in commercial mass-production or selling printed versions, please contact our licensing team at licensing@theprintfactory.com.",
     },
     {
       q: "What payment methods are supported?",

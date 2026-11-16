@@ -4,7 +4,7 @@ export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const token = searchParams.get("token");
-    const fileId = searchParams.get("fileId") || "stlforge_model";
+    const fileId = searchParams.get("fileId") || "theprintfactory_model";
 
     // Validate signed expiration if token provided
     if (token) {
@@ -19,7 +19,7 @@ export async function GET(req: Request) {
     }
 
     // Build a valid ASCII STL 3D geometry file
-    const stlContent = `solid STLForge_3D_Model
+    const stlContent = `solid ThePrintFactory_3D_Model
   facet normal 0.000000 0.000000 1.000000
     outer loop
       vertex 0.000000 0.000000 0.000000
@@ -48,7 +48,7 @@ export async function GET(req: Request) {
       vertex 0.000000 0.000000 0.000000
     endloop
   endfacet
-endsolid STLForge_3D_Model
+endsolid ThePrintFactory_3D_Model
 `;
 
     const fileName = `${fileId.replace(/[^a-zA-Z0-9_-]/g, "_")}.stl`;

@@ -1,6 +1,6 @@
 # Supabase PostgreSQL & Prisma Database Setup Guide
 
-This guide details how to configure, migrate, and seed the **Supabase PostgreSQL** database for **STLForge** in both local development and production on Vercel.
+This guide details how to configure, migrate, and seed the **Supabase PostgreSQL** database for **The Print Factory** in both local development and production on Vercel.
 
 ---
 
@@ -8,7 +8,7 @@ This guide details how to configure, migrate, and seed the **Supabase PostgreSQL
 
 1. Log in to [Supabase](https://supabase.com).
 2. Click **New Project** and select your preferred organization.
-3. Enter Project Name: `stlforge` (or `stl-store`).
+3. Enter Project Name: `The Print Factory` (or `stl-store`).
 4. Set a strong database password (store this securely).
 5. Choose the AWS region closest to your primary customer base.
 6. Click **Create new project** and wait ~2 minutes for provisioning.
@@ -82,7 +82,7 @@ npm run db:seed
 The seeder inserts:
 - **Categories:** Mechanical Models, Gadgets & EDC, Tabletop Gaming, Home Living, 3D Printer Accessories.
 - **Products:** Watertight 3D designs with pre-configured multi-currency prices (`INR`, `USD`, `EUR`, `GBP`, `CAD`, `AUD`, `JPY`).
-- **Initial Administrator:** `admin@stlforge.com` (hashed using 12 rounds of bcrypt).
+- **Initial Administrator:** `admin@The Print Factory.com` (hashed using 12 rounds of bcrypt).
 
 ---
 

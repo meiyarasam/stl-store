@@ -47,8 +47,8 @@ export default function ContactPage() {
                 <Mail className="w-4 h-4 text-zinc-700 flex-shrink-0 mt-0.5" />
                 <div>
                   <span className="font-semibold text-zinc-900 block">Customer Support</span>
-                  <a href="mailto:support@stlforge.com" className="hover:underline">
-                    support@stlforge.com
+                  <a href="mailto:support@theprintfactory.com" className="hover:underline">
+                    support@theprintfactory.com
                   </a>
                 </div>
               </div>
@@ -57,8 +57,8 @@ export default function ContactPage() {
                 <ShieldCheck className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
                 <div>
                   <span className="font-semibold text-zinc-900 block">Licencing & Verification</span>
-                  <a href="mailto:licensing@stlforge.com" className="hover:underline">
-                    licensing@stlforge.com
+                  <a href="mailto:licensing@theprintfactory.com" className="hover:underline">
+                    licensing@theprintfactory.com
                   </a>
                 </div>
               </div>

@@ -1,6 +1,7 @@
 import React from "react";
 import Link from "next/link";
-import { Layers, ShieldCheck, Download, Sparkles, Mail, Lock } from "lucide-react";
+import { ShieldCheck, Download, Sparkles, Mail, Lock } from "lucide-react";
+import { BrandLogo } from "@/components/common/BrandLogo";
 
 export function Footer() {
   return (
@@ -9,19 +10,9 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10">
           {/* Brand Info */}
           <div className="lg:col-span-2 space-y-4">
-            <Link href="/" className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded bg-white text-zinc-950 flex items-center justify-center font-bold">
-                <Layers className="w-5 h-5 text-zinc-950" />
-              </div>
-              <span className="text-xl font-bold tracking-tight text-white font-display">
-                STL<span className="text-zinc-400">FORGE</span>
-              </span>
-            </Link>
-            <p className="text-xs font-semibold tracking-wider text-zinc-400 uppercase">
-              Design. Download. Create.
-            </p>
+            <BrandLogo theme="dark" size="md" />
             <p className="text-sm text-zinc-400 max-w-sm leading-relaxed">
-              STLForge is a premier international digital marketplace for precision 3D-printable models, print-in-place mechanisms, collectible busts, and functional designs.
+              The Print Factory is a premier international digital marketplace for precision 3D-printable models, print-in-place mechanisms, collectible busts, and functional designs.
             </p>
 
             <div className="pt-2 flex items-center gap-4 text-xs text-zinc-400">
@@ -93,7 +84,7 @@ export function Footer() {
               </li>
               <li>
                 <Link href="/about" className="hover:text-white transition-colors">
-                  About STLForge
+                  About The Print Factory
                 </Link>
               </li>
               <li>
@@ -156,7 +147,7 @@ export function Footer() {
         {/* Payment & Verification Banner */}
         <div className="mt-12 pt-8 border-t border-zinc-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-500">
           <div className="flex flex-wrap items-center gap-4">
-            <p>© {new Date().getFullYear()} STLForge. All rights reserved. Precision 3D Digital Assets.</p>
+            <p>© {new Date().getFullYear()} The Print Factory. All rights reserved. Precision 3D Digital Assets.</p>
             <Link
               href="/admin/login"
               className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white hover:border-zinc-700 transition-colors font-semibold text-[11px]"

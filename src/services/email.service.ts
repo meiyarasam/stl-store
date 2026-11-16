@@ -1,7 +1,7 @@
 import { Resend } from "resend";
 
 const resendApiKey = process.env.RESEND_API_KEY || "";
-const resendFromEmail = process.env.RESEND_FROM_EMAIL || "STLForge <orders@stlforge.com>";
+const resendFromEmail = process.env.RESEND_FROM_EMAIL || "The Print Factory <orders@theprintfactory.com>";
 
 export const isResendConfigured = Boolean(
   resendApiKey && !resendApiKey.includes("placeholder")
@@ -73,14 +73,14 @@ export function generateOrderConfirmationEmail({
     <html>
       <head>
         <meta charset="utf-8">
-        <title>Order Confirmation - STLForge</title>
+        <title>Order Confirmation - The Print Factory</title>
       </head>
       <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; margin: 0; padding: 40px 20px;">
         <table align="center" width="100%" max-width="600" style="max-width: 600px; background-color: #ffffff; border-radius: 8px; border: 1px solid #e2e8f0; padding: 36px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
           <tr>
-            <td style="text-align: center; padding-bottom: 24px; border-bottom: 2px solid #0f172a;">
-              <h1 style="margin: 0; font-size: 24px; color: #0f172a; letter-spacing: -0.5px;">STLForge</h1>
-              <p style="margin: 4px 0 0 0; color: #64748b; font-size: 13px;">Design. Download. Create.</p>
+            <td style="text-align: center; padding-bottom: 24px; border-bottom: 2px solid #2563eb;">
+              <h1 style="margin: 0; font-size: 24px; color: #0f172a; letter-spacing: -0.5px;">THE PRINT <span style="color: #2563eb;">FACTORY</span></h1>
+              <p style="margin: 4px 0 0 0; color: #64748b; font-size: 13px; letter-spacing: 1px; text-transform: uppercase;">DESIGN. PRINT. CREATE.</p>
             </td>
           </tr>
           <tr>
@@ -88,7 +88,7 @@ export function generateOrderConfirmationEmail({
               <h2 style="font-size: 20px; color: #0f172a; margin-top: 0;">Payment Confirmed & Files Ready!</h2>
               <p style="color: #475569; font-size: 15px; line-height: 1.6;">
                 Hi ${customerName},<br>
-                Thank you for your purchase. Your digital 3D models are now unlocked and available for instant download in your STLForge account.
+                Thank you for your purchase. Your digital 3D models are now unlocked and available for instant download in your The Print Factory account.
               </p>
               <div style="background-color: #f1f5f9; padding: 12px 16px; border-radius: 6px; margin: 16px 0;">
                 <p style="margin: 0; font-size: 14px; color: #334155;">
@@ -125,8 +125,8 @@ export function generateOrderConfirmationEmail({
           </tr>
           <tr>
             <td style="border-top: 1px solid #e2e8f0; padding-top: 24px; color: #94a3b8; font-size: 12px; text-align: center; line-height: 1.5;">
-              STLForge Digital 3D Marketplace.<br>
-              Need help? Contact support@stlforge.com
+              The Print Factory – International Digital 3D Printing Marketplace.<br>
+              Need help? Contact support@theprintfactory.com
             </td>
           </tr>
         </table>

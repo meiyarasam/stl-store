@@ -1,6 +1,6 @@
 # Razorpay Production Setup & Integration Guide
 
-This guide details how to configure **Razorpay Standard Checkout**, server-created Orders, dynamic UPI QR payments, and webhooks for **STLForge**.
+This guide details how to configure **Razorpay Standard Checkout**, server-created Orders, dynamic UPI QR payments, and webhooks for **The Print Factory**.
 
 ---
 
@@ -40,7 +40,7 @@ Webhooks ensure that payment events (especially UPI payments where the customer 
 
 ## 3. Server-Side Order & Payment Architecture
 
-STLForge never charges amounts calculated solely on the client. The payment process follows strict server-side validation:
+The Print Factory never charges amounts calculated solely on the client. The payment process follows strict server-side validation:
 
 ```
 1. Customer clicks "Checkout"

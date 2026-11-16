@@ -7,6 +7,7 @@ import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ShieldCheck, Lock, Mail, AlertCircle, Eye, EyeOff, ArrowLeft } from "lucide-react";
+import { BrandLogo } from "@/components/common/BrandLogo";
 
 export function AdminLoginForm() {
   const router = useRouter();
@@ -44,15 +45,15 @@ export function AdminLoginForm() {
 
   return (
     <div className="max-w-md w-full space-y-8 bg-zinc-950 text-white border border-zinc-800 p-8 rounded-2xl shadow-2xl">
-      <div className="text-center space-y-2">
-        <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center mx-auto text-amber-400 shadow-inner">
-          <ShieldCheck className="w-6 h-6" />
+      <div className="text-center space-y-3">
+        <div className="flex justify-center">
+          <BrandLogo theme="dark" size="md" showTagline={false} />
         </div>
         <h1 className="text-2xl font-black tracking-tight font-display text-white">
-          STLForge Admin Portal
+          Admin Portal
         </h1>
         <p className="text-xs text-zinc-400">
-          Restricted access for marketplace administrators and store managers.
+          The Print Factory – Restricted access for marketplace administrators.
         </p>
       </div>
 
@@ -74,7 +75,7 @@ export function AdminLoginForm() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="admin@stlforge.com"
+              placeholder="admin@theprintfactory.com"
               className="bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-500 pl-9 focus:border-amber-400 focus:ring-amber-400"
             />
             <Mail className="w-4 h-4 text-zinc-500 absolute left-3 top-3.5" />

@@ -103,12 +103,12 @@ function loadUsers(): Map<string, StoredUser> {
   }
 
   // Pre-seed default Admin if not exists
-  const adminEmail = (process.env.ADMIN_DEFAULT_EMAIL || "admin@stlforge.com").toLowerCase().trim();
+  const adminEmail = (process.env.ADMIN_DEFAULT_EMAIL || "admin@theprintfactory.com").toLowerCase().trim();
   if (!usersCache.has(adminEmail)) {
-    const adminPassword = process.env.ADMIN_DEFAULT_PASSWORD || "Admin@STLForge2026!";
+    const adminPassword = process.env.ADMIN_DEFAULT_PASSWORD || "Admin@ThePrintFactory2026!";
     const adminUser: StoredUser = {
       id: "usr_admin_default",
-      name: "STLForge Administrator",
+      name: "The Print Factory Administrator",
       email: adminEmail,
       passwordHash: bcrypt.hashSync(adminPassword, 10),
       country: "US",

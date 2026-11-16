@@ -18,7 +18,7 @@ export default function TermsPage() {
 
       <div className="prose prose-zinc prose-sm max-w-none text-zinc-600 leading-relaxed space-y-6">
         <p>
-          Welcome to STLForge. By accessing our platform, registering an account, or purchasing digital 3D models, you agree to comply with and be bound by the following terms and conditions.
+          Welcome to The Print Factory. By accessing our platform, registering an account, or purchasing digital 3D models, you agree to comply with and be bound by the following terms and conditions.
         </p>
 
         <h2 className="text-lg font-bold text-zinc-950">1. Account Registration and Security</h2>
@@ -28,7 +28,7 @@ export default function TermsPage() {
 
         <h2 className="text-lg font-bold text-zinc-950">2. Intellectual Property Rights</h2>
         <p>
-          All 3D digital designs, render previews, typography, and website assets are protected by copyright and intellectual property laws. Purchasing a product grants a non-exclusive license under our STL Licence Agreement. Ownership of all intellectual property remains strictly with the original creators and STLForge.
+          All 3D digital designs, render previews, typography, and website assets are protected by copyright and intellectual property laws. Purchasing a product grants a non-exclusive license under our STL Licence Agreement. Ownership of all intellectual property remains strictly with the original creators and The Print Factory.
         </p>
 
         <h2 className="text-lg font-bold text-zinc-950">3. Pricing and Payments</h2>
@@ -38,7 +38,7 @@ export default function TermsPage() {
 
         <h2 className="text-lg font-bold text-zinc-950">4. Limitation of Liability</h2>
         <p>
-          STLForge will not be liable for any physical damage to your 3D printer, print bed, nozzle, or wasted filament resulting from slicing errors or printer hardware malfunctions. Users are responsible for inspecting sliced toolpaths before starting long prints.
+          The Print Factory will not be liable for any physical damage to your 3D printer, print bed, nozzle, or wasted filament resulting from slicing errors or printer hardware malfunctions. Users are responsible for inspecting sliced toolpaths before starting long prints.
         </p>
       </div>
     </div>

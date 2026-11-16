@@ -220,15 +220,15 @@ export default async function HomePage() {
         <ProductGrid products={bestSellers} />
       </section>
 
-      {/* Why Choose STLForge */}
+      {/* Why Choose The Print Factory */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="rounded-2xl bg-zinc-100/70 text-zinc-950 p-8 sm:p-14 border border-zinc-200">
           <div className="max-w-2xl mb-10">
-            <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider">
+            <span className="text-xs font-bold text-blue-600 uppercase tracking-wider">
               Engineering Standard
             </span>
             <h2 className="text-2xl sm:text-4xl font-black tracking-tight text-zinc-950 font-display mt-1">
-              Why Makers Choose STLForge
+              Why Makers Choose The Print Factory
             </h2>
             <p className="text-sm text-zinc-600 mt-2 leading-relaxed">
               We eliminate failed prints by subjecting every uploaded digital model to rigorous physical and digital manifold verification before listing.
@@ -285,7 +285,7 @@ export default async function HomePage() {
             Never Miss a New 3D Design Release
           </h2>
           <p className="text-xs sm:text-sm text-zinc-600 max-w-md mx-auto">
-            Get notified when new print-in-place mechanisms, collectible busts, and seasonal 3D models drop on STLForge.
+            Get notified when new print-in-place mechanisms, collectible busts, and seasonal 3D models drop on The Print Factory.
           </p>
 
           <form

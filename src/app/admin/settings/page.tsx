@@ -156,7 +156,7 @@ export default async function AdminSettingsPage() {
                 )}
               </div>
               <span className="text-[11px] text-zinc-400 block pt-1">
-                Sender: orders@stlforge.com
+                Sender: orders@theprintfactory.com
               </span>
             </div>
           </div>

@@ -1,12 +1,12 @@
 # Supabase Storage Configuration Guide
 
-This guide details how to configure private digital file delivery and public preview imagery for **STLForge** using **Supabase Storage**.
+This guide details how to configure private digital file delivery and public preview imagery for **The Print Factory** using **Supabase Storage**.
 
 ---
 
 ## 1. Storage Architecture Overview
 
-STLForge handles two distinct categories of files:
+The Print Factory handles two distinct categories of files:
 
 | File Type | Storage Bucket | Privacy | Access Method |
 | :--- | :--- | :--- | :--- |

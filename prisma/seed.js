@@ -4,11 +4,11 @@ const bcrypt = require("bcryptjs");
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("🌱 Starting STLForge database seeding...");
+  console.log("🌱 Starting The Print Factory database seeding...");
 
   // 1. Create Default Admin User
-  const adminEmail = process.env.ADMIN_DEFAULT_EMAIL || "admin@stlforge.com";
-  const adminPassword = process.env.ADMIN_DEFAULT_PASSWORD || "Admin@STLForge2026!";
+  const adminEmail = process.env.ADMIN_DEFAULT_EMAIL || "admin@theprintfactory.com";
+  const adminPassword = process.env.ADMIN_DEFAULT_PASSWORD || "Admin@ThePrintFactory2026!";
   const passwordHash = await bcrypt.hash(adminPassword, 12);
 
   const admin = await prisma.user.upsert({
@@ -19,7 +19,7 @@ async function main() {
     },
     create: {
       email: adminEmail,
-      name: "STLForge Administrator",
+      name: "The Print Factory Administrator",
       role: "ADMIN",
       passwordHash: passwordHash,
       country: "US",

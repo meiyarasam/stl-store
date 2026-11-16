@@ -1,6 +1,6 @@
 # Environment Variables Reference
 
-This document provides a comprehensive reference for all environment variables used by **STLForge** across local development, staging, and production on **Vercel**.
+This document provides a comprehensive reference for all environment variables used by **The Print Factory** across local development, staging, and production on **Vercel**.
 
 ---
 
@@ -26,8 +26,8 @@ This document provides a comprehensive reference for all environment variables u
 | `SUPABASE_STORAGE_BUCKET_PRIVATE` | Optional | Server-only | Name of private STL bucket (defaults to `stl-files-private`) |
 | `SUPABASE_STORAGE_BUCKET_PUBLIC` | Optional | Server-only | Name of public image previews bucket (defaults to `stl-images-public`) |
 | `RESEND_API_KEY` | Optional | Server-only | Resend API key for transactional purchase emails |
-| `RESEND_FROM_EMAIL` | Optional | Server-only | Verified sender email address (e.g. `STLForge <orders@yourdomain.com>`) |
-| `ADMIN_DEFAULT_EMAIL` | Optional | Server-only | Default admin login email for initial setup (`admin@stlforge.com`) |
+| `RESEND_FROM_EMAIL` | Optional | Server-only | Verified sender email address (e.g. `The Print Factory <orders@yourdomain.com>`) |
+| `ADMIN_DEFAULT_EMAIL` | Optional | Server-only | Default admin login email for initial setup (`admin@The Print Factory.com`) |
 | `ADMIN_DEFAULT_PASSWORD` | Optional | Server-only | Default admin password for initial setup |
 
 ---
@@ -90,6 +90,6 @@ SUPABASE_STORAGE_BUCKET_PUBLIC="stl-images-public"
 ### E. Transactional Email (Resend)
 ```env
 RESEND_API_KEY="re_123456789"
-RESEND_FROM_EMAIL="STLForge Orders <orders@stlforge.com>"
+RESEND_FROM_EMAIL="The Print Factory Orders <orders@The Print Factory.com>"
 ```
 *Note: If custom domain DNS records are not yet verified, you can test emails using `onboarding@resend.dev` as the sender.*

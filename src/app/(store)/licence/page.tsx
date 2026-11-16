@@ -10,7 +10,7 @@ export default function LicencePage() {
           Legal Agreement
         </span>
         <h1 className="text-3xl sm:text-4xl font-black text-zinc-950 tracking-tight font-display mt-1">
-          STLForge Digital STL Licence Agreement
+          The Print Factory Digital STL Licence Agreement
         </h1>
         <p className="text-xs text-zinc-500 mt-1">
           Last Updated: November 2026 • Governing Terms for Digital 3D Assets
@@ -19,7 +19,7 @@ export default function LicencePage() {
 
       <div className="prose prose-zinc prose-sm max-w-none text-zinc-600 leading-relaxed space-y-6">
         <p>
-          By purchasing, downloading, or accessing digital 3D model files (including but not limited to .STL, .OBJ, .3MF, and compressed .ZIP archives) from STLForge, you agree to be bound by the terms of this Digital STL Licence Agreement.
+          By purchasing, downloading, or accessing digital 3D model files (including but not limited to .STL, .OBJ, .3MF, and compressed .ZIP archives) from The Print Factory, you agree to be bound by the terms of this Digital STL Licence Agreement.
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 not-prose">
@@ -30,7 +30,7 @@ export default function LicencePage() {
             <ul className="text-xs text-emerald-800 space-y-2">
               <li>• Printing physical copies for your personal, private, and non-commercial enjoyment.</li>
               <li>• Scaling, modifying, slicing, and painting prints for personal use.</li>
-              <li>• Sharing photographs or videos of your physically finished and painted prints with credit to STLForge.</li>
+              <li>• Sharing photographs or videos of your physically finished and painted prints with credit to The Print Factory.</li>
               <li>• Storing backup copies for your personal use.</li>
             </ul>
           </div>
@@ -50,7 +50,7 @@ export default function LicencePage() {
 
         <h2 className="text-lg font-bold text-zinc-950 pt-4">Commercial Inquiries</h2>
         <p>
-          If you run an Etsy shop, Kickstarter campaign, or print farm and wish to sell physical 3D prints produced from our designs, please reach out to <a href="mailto:licensing@stlforge.com" className="font-semibold text-zinc-900 underline">licensing@stlforge.com</a> to obtain an official Commercial Merchant Licence.
+          If you run an Etsy shop, Kickstarter campaign, or print farm and wish to sell physical 3D prints produced from our designs, please reach out to <a href="mailto:licensing@theprintfactory.com" className="font-semibold text-zinc-900 underline">licensing@theprintfactory.com</a> to obtain an official Commercial Merchant Licence.
         </p>
       </div>
     </div>

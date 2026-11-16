@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { useStore } from "@/context/StoreContext";
 import { CurrencySelector } from "./CurrencySelector";
+import { BrandLogo } from "@/components/common/BrandLogo";
 import {
   ShoppingBag,
   Search,
@@ -49,19 +50,7 @@ export function Header() {
         <div className="flex items-center justify-between h-16 gap-4">
           {/* Logo */}
           <div className="flex items-center gap-6">
-            <Link href="/" className="flex items-center gap-2.5 group">
-              <div className="w-9 h-9 rounded-lg bg-zinc-950 text-white flex items-center justify-center font-bold tracking-tighter group-hover:bg-zinc-800 transition-colors shadow-sm">
-                <Layers className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <span className="text-xl font-black tracking-tight text-zinc-950 font-display">
-                  STL<span className="text-zinc-500">FORGE</span>
-                </span>
-                <span className="hidden sm:block text-[10px] tracking-wider text-zinc-500 uppercase font-semibold">
-                  Design. Download. Create.
-                </span>
-              </div>
-            </Link>
+            <BrandLogo size="md" />
 
             {/* Desktop Navigation Links */}
             <nav className="hidden md:flex items-center space-x-1 lg:space-x-2 pl-4">

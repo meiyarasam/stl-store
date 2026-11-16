@@ -1,15 +1,15 @@
-# STLForge – International Digital STL Marketplace
+# The Print Factory – International Digital 3D Printing Marketplace
 
-> **"Design. Download. Create."**  
+> **"DESIGN. PRINT. CREATE."**  
 > A production-grade, international e-commerce platform engineered specifically for discovering, purchasing, and securely downloading high-precision 3D-printable STL files.
 
-Inspired by Ko-fi's digital product store experience, STLForge implements an enterprise-grade full-stack architecture featuring multi-currency native pricing (`INR`, `USD`, `EUR`, `GBP`, `CAD`, `AUD`, `JPY`), Razorpay standard checkout, dynamic UPI QR payments, signed cryptographic file delivery via Supabase Storage, self-serve customer dashboards, and a complete admin management portal.
+Inspired by modern digital product storefronts, The Print Factory implements an enterprise-grade full-stack architecture featuring multi-currency native pricing (`INR`, `USD`, `EUR`, `GBP`, `CAD`, `AUD`, `JPY`), Razorpay standard checkout, dynamic UPI QR payments, signed cryptographic file delivery via Supabase Storage, self-serve customer dashboards, and a complete admin management portal.
 
 ---
 
 ## 1. Project Overview
 
-STLForge bridges modern digital manufacturing with international e-commerce. Every 3D model hosted on the marketplace undergoes rigorous manifold geometry checks, ensuring 100% watertight prints without mesh inversions or non-manifold topology errors.
+The Print Factory bridges modern digital manufacturing with international e-commerce. Every 3D model hosted on the marketplace undergoes rigorous manifold geometry checks, ensuring 100% watertight prints without mesh inversions or non-manifold topology errors.
 
 ### Key Capabilities
 - **Universal Multi-Currency System:** Country-based automatic selection with explicit per-product currency configuration (not lossy exchange rate conversions).
@@ -227,8 +227,8 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 - **Customer Registration:** [http://localhost:3000/register](http://localhost:3000/register)
 - **Admin Portal:** [http://localhost:3000/admin/login](http://localhost:3000/admin/login)
-  - **Email:** `admin@stlforge.com`
-  - **Password:** `Admin@STLForge2026!`
+  - **Email:** `admin@theprintfactory.com`
+  - **Password:** Configured via `ADMIN_DEFAULT_PASSWORD` in `.env`
 
 ---
 
@@ -265,7 +265,7 @@ Quick summary:
 ## 13. Troubleshooting
 
 ### Prisma Connection Timeout in Local Development
-- If local PostgreSQL is not running, STLForge automatically activates its 2ms connectivity guard (`isDatabaseReachable`) and serves persistent local data from `data/users.json` and in-memory sample collections with zero latency.
+- If local PostgreSQL is not running, The Print Factory automatically activates its 2ms connectivity guard (`isDatabaseReachable`) and serves persistent local data with zero latency.
 
 ### EPERM errors during build on Windows
 - Close any background processes holding file locks on `.next/` and run `npm run build`.

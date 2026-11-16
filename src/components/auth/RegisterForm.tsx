@@ -8,7 +8,8 @@ import { useStore } from "@/context/StoreContext";
 import { COUNTRIES_LIST } from "@/constants/currencies";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Layers, AlertCircle, CheckCircle2, Eye, EyeOff } from "lucide-react";
+import { AlertCircle, CheckCircle2, Eye, EyeOff } from "lucide-react";
+import { BrandLogo } from "@/components/common/BrandLogo";
 
 export function RegisterForm() {
   const router = useRouter();
@@ -99,17 +100,15 @@ export function RegisterForm() {
 
   return (
     <div className="max-w-md w-full space-y-6 bg-white border border-zinc-200 p-8 rounded-2xl shadow-sm">
-      <div className="text-center space-y-2">
-        <Link href="/" className="inline-flex items-center gap-2">
-          <div className="w-10 h-10 rounded-lg bg-zinc-950 text-white flex items-center justify-center font-bold">
-            <Layers className="w-6 h-6" />
-          </div>
-        </Link>
+      <div className="text-center space-y-3">
+        <div className="flex justify-center">
+          <BrandLogo size="md" showTagline={false} />
+        </div>
         <h1 className="text-2xl font-black text-zinc-950 tracking-tight font-display">
           Create Your Account
         </h1>
         <p className="text-xs text-zinc-500">
-          Join STLForge to purchase, download, and manage your 3D digital STL files.
+          Join The Print Factory to purchase, download, and manage your 3D digital STL files.
         </p>
       </div>
 

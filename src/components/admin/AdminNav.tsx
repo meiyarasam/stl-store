@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
@@ -39,10 +40,23 @@ export function AdminNav() {
               <ArrowLeft className="w-3.5 h-3.5" /> Back to Store
             </Link>
             <div className="h-4 w-px bg-zinc-800" />
-            <span className="text-sm font-bold tracking-tight text-white flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-amber-400" />
-              STLForge Admin Portal
-            </span>
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded overflow-hidden bg-white p-0.5 flex-shrink-0">
+                <Image
+                  src="/images/logo.png"
+                  alt="The Print Factory"
+                  width={28}
+                  height={28}
+                  className="object-contain"
+                />
+              </div>
+              <span className="text-sm font-bold tracking-tight text-white flex items-center gap-1.5">
+                <span>The Print Factory</span>
+                <span className="text-[10px] uppercase px-1.5 py-0.5 rounded bg-blue-900/60 text-blue-300 border border-blue-700/50 font-mono">
+                  Admin
+                </span>
+              </span>
+            </div>
           </div>
 
           <nav className="flex items-center space-x-1 sm:space-x-2">

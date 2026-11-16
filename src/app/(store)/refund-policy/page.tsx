@@ -19,7 +19,7 @@ export default function RefundPolicyPage() {
 
       <div className="prose prose-zinc prose-sm max-w-none text-zinc-600 leading-relaxed space-y-6">
         <p>
-          At STLForge, we take immense pride in the geometric precision and slicing fidelity of our 3D models. Because digital files (.STL, .ZIP, .3MF) cannot be physically returned once delivered or downloaded, all purchases are generally final.
+          At The Print Factory, we take immense pride in the geometric precision and slicing fidelity of our 3D models. Because digital files (.STL, .ZIP, .3MF) cannot be physically returned once delivered or downloaded, all purchases are generally final.
         </p>
 
         <h2 className="text-lg font-bold text-zinc-950">1. Eligible Circumstances for Refunds</h2>
@@ -44,7 +44,7 @@ export default function RefundPolicyPage() {
 
         <h2 className="text-lg font-bold text-zinc-950">3. How to Request a Refund</h2>
         <p>
-          To initiate a refund request, please email <a href="mailto:support@stlforge.com" className="font-semibold text-zinc-900 underline">support@stlforge.com</a> within 7 days of purchase. Include your Order Number (e.g., #STL-XXXXXX), your Razorpay payment transaction reference, and screenshots of any slicing errors encountered. Approved refunds are credited back to your original payment method (bank account, card, or UPI) within 5–7 business days.
+          To initiate a refund request, please email <a href="mailto:support@theprintfactory.com" className="font-semibold text-zinc-900 underline">support@theprintfactory.com</a> within 7 days of purchase. Include your Order Number (e.g., #TPF-XXXXXX), your Razorpay payment transaction reference, and screenshots of any slicing errors encountered. Approved refunds are credited back to your original payment method (bank account, card, or UPI) within 5–7 business days.
         </p>
       </div>
     </div>

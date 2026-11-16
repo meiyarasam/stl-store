@@ -8,19 +8,28 @@ import { CartDrawer } from "@/components/cart/CartDrawer";
 import Script from "next/script";
 
 export const metadata: Metadata = {
-  title: "STLForge – International Digital STL Marketplace",
+  title: {
+    default: "The Print Factory – International Digital 3D Printing Marketplace",
+    template: "%s | The Print Factory",
+  },
   description:
-    "Design. Download. Create. Discover premium 3D printable designs, print-in-place mechanisms, and collectible miniatures. Instant secure digital download.",
+    "DESIGN. PRINT. CREATE. Discover premium 3D printable designs, print-in-place mechanisms, and collectible miniatures. Instant secure digital download.",
   keywords: [
-    "STL files",
-    "3D printing",
+    "The Print Factory",
+    "3D printing STL files",
+    "3D print designs",
     "Digital marketplace",
     "Print in place",
     "3D models",
     "Resin 3D printing",
     "FDM 3D printing",
   ],
-  authors: [{ name: "STLForge" }],
+  authors: [{ name: "The Print Factory" }],
+  icons: {
+    icon: "/images/logo.png",
+    shortcut: "/images/logo.png",
+    apple: "/images/logo.png",
+  },
 };
 
 export default function RootLayout({

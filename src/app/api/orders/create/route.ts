@@ -53,7 +53,7 @@ export async function POST(req: Request) {
     let upiString: string | null = null;
     if (currency === "INR" || validated.customerCountry === "India" || validated.customerCountry === "IN") {
       upiString = generateUPIString({
-        merchantName: "STLForge - Digital 3D",
+        merchantName: "The Print Factory - Digital 3D",
         orderId: order.orderNumber,
         amount,
         currency: "INR",

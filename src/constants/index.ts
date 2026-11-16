@@ -1,11 +1,12 @@
 export * from "./currencies";
 
 export const APP_CONFIG = {
-  name: "STLForge",
-  tagline: "Design. Download. Create.",
+  name: "The Print Factory",
+  fullName: "THE PRINT FACTORY",
+  tagline: "DESIGN. PRINT. CREATE.",
   description: "A premium international marketplace for digital 3D-printable products.",
-  supportEmail: "support@stlforge.com",
-  adminDefaultEmail: "admin@stlforge.com",
+  supportEmail: "support@theprintfactory.com",
+  adminDefaultEmail: "admin@theprintfactory.com",
   merchantProfileUrl: "https://razorpay.me/@meiyarasan",
   defaultCurrency: "USD" as const,
   downloadLinkValidityDays: 365,

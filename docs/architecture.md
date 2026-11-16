@@ -1,7 +1,7 @@
-# STLForge System Architecture & Technical Specification
+# The Print Factory System Architecture & Technical Specification
 
 ## 1. Architectural Philosophy
-STLForge is built as a modular, domain-driven full-stack Next.js application designed to provide sub-second global page loads, strict server-authoritative e-commerce pricing, and non-blocking fallbacks.
+The Print Factory is built as a modular, domain-driven full-stack Next.js application designed to provide sub-second global page loads, strict server-authoritative e-commerce pricing, and non-blocking fallbacks.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐

@@ -6,20 +6,20 @@ export default function AboutPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-12">
       <div className="space-y-3">
-        <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
-          About STLForge
+        <span className="text-xs font-bold text-blue-600 uppercase tracking-wider">
+          About The Print Factory
         </span>
         <h1 className="text-3xl sm:text-5xl font-black text-zinc-950 tracking-tight font-display">
           Crafting Precision 3D Digital Assets for Global Makers.
         </h1>
         <p className="text-base text-zinc-600 leading-relaxed">
-          STLForge was created to bridge high-end parametric industrial design and precision digital manufacturing.
+          The Print Factory was created to bridge high-end parametric industrial design and precision digital manufacturing.
         </p>
       </div>
 
       <div className="prose prose-zinc prose-sm max-w-none space-y-6 text-zinc-600 leading-relaxed">
         <p>
-          Founded with a relentless commitment to print quality, STLForge provides a curated, international marketplace for creators, hobbyists, engineers, and miniature artists. Unlike generic open repositories where corrupted polygons and fragile geometry lead to failed 15-hour prints, every design hosted on STLForge is validated through slicing tests and physical print verification.
+          Founded with a relentless commitment to print quality, The Print Factory provides a curated, international marketplace for creators, hobbyists, engineers, and miniature artists. Unlike generic open repositories where corrupted polygons and fragile geometry lead to failed 15-hour prints, every design hosted on The Print Factory is validated through slicing tests and physical print verification.
         </p>
 
         <h2 className="text-xl font-bold text-zinc-950 pt-4">Our Guiding Philosophy</h2>

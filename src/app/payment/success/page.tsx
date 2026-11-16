@@ -129,7 +129,7 @@ export default async function PaymentSuccessPage({ searchParams }: PaymentSucces
               <div className="p-4 rounded-lg bg-zinc-50 border border-zinc-200 flex items-center justify-between">
                 <div>
                   <span className="text-xs font-bold text-zinc-900 block font-mono">
-                    STLForge_Digital_Assets.stl
+                    ThePrintFactory_Digital_Assets.stl
                   </span>
                   <span className="text-[11px] text-zinc-500">
                     High precision 3D model archive

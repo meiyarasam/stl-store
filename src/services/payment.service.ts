@@ -54,7 +54,7 @@ export async function createRazorpayOrder({
         receipt: receipt.slice(0, 40), // Razorpay limits receipt to 40 chars
         notes: {
           ...notes,
-          platform: "STLForge",
+          platform: "The Print Factory",
           merchantProfile: MERCHANT_PROFILE_URL,
         },
       });
@@ -156,7 +156,7 @@ export function verifyWebhookSignature({
  */
 export function generateUPIString({
   merchantVpa = "meiyarasan@razorpay",
-  merchantName = "STLForge - Meiyarasan",
+  merchantName = "The Print Factory - Meiyarasan",
   orderId,
   amount,
   currency = "INR",
@@ -167,7 +167,7 @@ export function generateUPIString({
   amount: number;
   currency?: string;
 }): string {
-  const note = encodeURIComponent(`STLForge Order ${orderId}`);
+  const note = encodeURIComponent(`The Print Factory Order ${orderId}`);
   const pn = encodeURIComponent(merchantName);
   return `upi://pay?pa=${merchantVpa}&pn=${pn}&tr=${orderId}&am=${amount.toFixed(2)}&cu=${currency}&tn=${note}`;
 }
