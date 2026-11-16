@@ -84,6 +84,11 @@ STLForge/
 │
 ├── docs/
 │   ├── deployment.md                # Step-by-step Vercel deployment guide
+│   ├── environment-variables.md     # Production & local environment variables reference
+│   ├── database-setup.md            # Supabase PostgreSQL & Prisma migration guide
+│   ├── razorpay-setup.md            # Razorpay live keys, webhooks & international payments
+│   ├── storage-setup.md             # Supabase private STL & public image buckets
+│   ├── payment-integration.md       # Technical payment gateway & UPI QR specification
 │   └── architecture.md              # Architectural specification & data flow
 │
 ├── prisma/
@@ -140,8 +145,8 @@ STLForge/
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/meiyarasam/stlforge.git
-   cd stlforge
+   git clone https://github.com/meiyarasam/stl-store.git
+   cd stl-store
    ```
 
 2. **Install dependencies:**

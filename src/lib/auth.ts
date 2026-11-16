@@ -121,6 +121,6 @@ export const authOptions: NextAuthOptions = {
     signIn: "/login",
     error: "/login",
   },
-  secret: process.env.NEXTAUTH_SECRET || "stlforge-super-secret-production-key-2026",
+  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "stlforge-super-secret-production-key-2026",
 };
 

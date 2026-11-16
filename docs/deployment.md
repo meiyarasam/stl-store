@@ -7,7 +7,7 @@ This guide provides end-to-end instructions for deploying the **STLForge** inter
 ## 1. Prerequisites
 
 Before deploying, ensure you have:
-1. A **GitHub account** with access to your repository: [https://github.com/meiyarasam/stlforge](https://github.com/meiyarasam/stlforge).
+1. A **GitHub account** with access to your repository: [https://github.com/meiyarasam/stl-store](https://github.com/meiyarasam/stl-store).
 2. A **Vercel account** connected to GitHub.
 3. A **Supabase PostgreSQL database** (free tier supported with transaction pooling).
 4. A **Razorpay merchant account**: [https://razorpay.me/@meiyarasan](https://razorpay.me/@meiyarasan).
@@ -51,7 +51,7 @@ Before deploying, ensure you have:
 ## 4. Vercel Project Import & Configuration
 
 1. In the Vercel dashboard, click **Add New** > **Project**.
-2. Select your repository `meiyarasam/stlforge`.
+2. Select your repository `meiyarasam/stl-store`.
 3. In **Framework Preset**, select **Next.js**.
 4. In **Build & Development Settings**, keep defaults:
    - **Build Command:** `npm run build` (or `next build`)
