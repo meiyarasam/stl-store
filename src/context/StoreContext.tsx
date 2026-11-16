@@ -85,7 +85,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     try {
       localStorage.setItem("theprintfactory_cart", JSON.stringify(cart));
       localStorage.setItem("stlforge_cart", JSON.stringify(cart));
-    } catch (e) {}
+    } catch (e) { }
   }, [cart, isInitialized]);
 
   // Set Country and update default currency
@@ -94,7 +94,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     try {
       localStorage.setItem("theprintfactory_country", countryCode);
       localStorage.setItem("stlforge_country", countryCode);
-    } catch (e) {}
+    } catch (e) { }
 
     const countryObj = COUNTRIES_LIST.find((c) => c.code === countryCode);
     if (countryObj) {
@@ -110,7 +110,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       document.cookie = `theprintfactory_currency=${currencyCode}; path=/; max-age=2592000`;
       localStorage.setItem("stlforge_currency", currencyCode);
       document.cookie = `stlforge_currency=${currencyCode}; path=/; max-age=2592000`;
-    } catch (e) {}
+    } catch (e) { }
   };
 
   const getProductPrice = (product: ProductDTO) => {

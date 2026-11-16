@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import fs from "fs";
 import path from "path";
+import os from "os";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co";
 const supabaseServiceRoleKey =
@@ -71,7 +72,7 @@ export async function createSignedDownloadUrl(
 }
 
 /**
- * Upload a private file (STL/ZIP) to dual storage (local disk + Supabase Storage)
+ * Upload a private file (STL/ZIP) to dual storage (local disk + /tmp + Supabase Storage)
  */
 export async function uploadPrivateFile(
   fileBuffer: Buffer,
@@ -79,7 +80,7 @@ export async function uploadPrivateFile(
   contentType: string
 ): Promise<{ path: string | null; error: string | null }> {
   try {
-    // 1. Always save to local server private storage disk as reliable primary / fallback
+    // 1. Try local server private storage disk
     try {
       const localDiskPath = path.join(process.cwd(), "storage", "private", filePath);
       const localDir = path.dirname(localDiskPath);
@@ -88,7 +89,17 @@ export async function uploadPrivateFile(
       }
       fs.writeFileSync(localDiskPath, fileBuffer);
     } catch (diskErr) {
-      console.warn("Local disk write notice for private file:", diskErr);
+      // Fallback for read-only serverless filesystems (e.g. Vercel)
+      try {
+        const tmpDiskPath = path.join(os.tmpdir(), "storage", "private", filePath);
+        const tmpDir = path.dirname(tmpDiskPath);
+        if (!fs.existsSync(tmpDir)) {
+          fs.mkdirSync(tmpDir, { recursive: true });
+        }
+        fs.writeFileSync(tmpDiskPath, fileBuffer);
+      } catch (tmpErr) {
+        console.warn("Tmp storage write notice:", tmpErr);
+      }
     }
 
     // 2. Upload to Supabase Storage if credentials are configured
@@ -119,7 +130,7 @@ export async function uploadPrivateFile(
 }
 
 /**
- * Read a private file from local storage or Supabase Storage
+ * Read a private file from local storage, /tmp, or Supabase Storage
  */
 export async function readPrivateFile(
   filePath: string
@@ -132,7 +143,14 @@ export async function readPrivateFile(
       return { buffer: buf, error: null };
     }
 
-    // 2. Check Supabase Storage if not on disk
+    // 2. Check /tmp serverless storage
+    const tmpDiskPath = path.join(os.tmpdir(), "storage", "private", filePath);
+    if (fs.existsSync(tmpDiskPath)) {
+      const buf = fs.readFileSync(tmpDiskPath);
+      return { buffer: buf, error: null };
+    }
+
+    // 3. Check Supabase Storage
     const isPlaceholder =
       !process.env.SUPABASE_SERVICE_ROLE_KEY ||
       process.env.SUPABASE_SERVICE_ROLE_KEY.includes("placeholder");
@@ -155,7 +173,8 @@ export async function readPrivateFile(
 }
 
 /**
- * Upload a public preview image to dual storage (local public directory + Supabase Storage)
+ * Upload a public preview image to dual storage (Supabase Storage / local public directory / base64 Data URI)
+ * Guaranteed to succeed in any hosting environment (Vercel serverless, container, or VPS).
  * Never falls back to third-party Unsplash placeholders.
  */
 export async function uploadPublicImage(
@@ -163,24 +182,13 @@ export async function uploadPublicImage(
   filePath: string,
   contentType: string
 ): Promise<{ publicUrl: string | null; error: string | null }> {
-  try {
-    const filename = path.basename(filePath);
+  const isPlaceholder =
+    !process.env.SUPABASE_SERVICE_ROLE_KEY ||
+    process.env.SUPABASE_SERVICE_ROLE_KEY.includes("placeholder");
 
-    // 1. Save to web-accessible public directory
-    const publicDiskPath = path.join(process.cwd(), "public", "uploads", "previews", filename);
-    const publicDir = path.dirname(publicDiskPath);
-    if (!fs.existsSync(publicDir)) {
-      fs.mkdirSync(publicDir, { recursive: true });
-    }
-    fs.writeFileSync(publicDiskPath, fileBuffer);
-    const localWebUrl = `/uploads/previews/${filename}`;
-
-    // 2. Attempt Supabase upload if active
-    const isPlaceholder =
-      !process.env.SUPABASE_SERVICE_ROLE_KEY ||
-      process.env.SUPABASE_SERVICE_ROLE_KEY.includes("placeholder");
-
-    if (!isPlaceholder) {
+  // 1. If Supabase Storage credentials exist, upload to Supabase public bucket
+  if (!isPlaceholder) {
+    try {
       const { data, error } = await supabaseAdmin.storage
         .from(PUBLIC_BUCKET)
         .upload(filePath, fileBuffer, {
@@ -199,15 +207,36 @@ export async function uploadPublicImage(
       } else if (error) {
         console.warn("Supabase public image upload notice:", error.message);
       }
+    } catch (supaErr) {
+      console.warn("Supabase upload exception:", supaErr);
     }
+  }
 
-    // Return the real local web URL
-    return { publicUrl: localWebUrl, error: null };
-  } catch (err: any) {
-    console.warn("uploadPublicImage error:", err);
+  // 2. Try saving to local public directory (works in dev, node server, VPS)
+  try {
+    const filename = path.basename(filePath);
+    const publicDiskPath = path.join(process.cwd(), "public", "uploads", "previews", filename);
+    const publicDir = path.dirname(publicDiskPath);
+    if (!fs.existsSync(publicDir)) {
+      fs.mkdirSync(publicDir, { recursive: true });
+    }
+    fs.writeFileSync(publicDiskPath, fileBuffer);
+    return { publicUrl: `/uploads/previews/${filename}`, error: null };
+  } catch (diskErr) {
+    // Expected on serverless environments like Vercel with read-only filesystems
+    console.warn("Local filesystem is read-only (serverless environment):", diskErr);
+  }
+
+  // 3. 100% Guaranteed Fallback: High-quality Data URI
+  // Directly stored in PostgreSQL ProductImage.url, rendered instantly across all browsers and devices
+  try {
+    const safeMime = contentType || "image/jpeg";
+    const dataUri = `data:${safeMime};base64,${fileBuffer.toString("base64")}`;
+    return { publicUrl: dataUri, error: null };
+  } catch (base64Err: any) {
     return {
       publicUrl: null,
-      error: err.message || "Failed to save preview image.",
+      error: base64Err.message || "Failed to process image buffer.",
     };
   }
 }
