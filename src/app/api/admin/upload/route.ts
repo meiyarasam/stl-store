@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/authOptions";
 import { uploadPrivateFile, uploadPublicImage } from "@/lib/storage/supabase";
+import prisma from "@/lib/database/prisma";
 
 export const dynamic = "force-dynamic";
 
@@ -11,7 +12,14 @@ export async function POST(req: NextRequest) {
     const userRole = (session?.user as any)?.role?.toUpperCase();
     const userEmail = session?.user?.email?.toLowerCase().trim();
     const adminEmail = (process.env.ADMIN_DEFAULT_EMAIL || "admin@theprintfactory.com").toLowerCase().trim();
-    const isAuthorized = userRole === "ADMIN" || userEmail === adminEmail;
+    let isAuthorized = userRole === "ADMIN" || userEmail === adminEmail;
+
+    if (!isAuthorized && userEmail) {
+      const dbUser = await prisma.user.findUnique({ where: { email: userEmail } }).catch(() => null);
+      if (dbUser?.role === "ADMIN") {
+        isAuthorized = true;
+      }
+    }
 
     if (!isAuthorized && process.env.NODE_ENV === "production") {
       return NextResponse.json(

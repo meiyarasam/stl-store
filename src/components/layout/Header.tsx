@@ -186,7 +186,7 @@ export function Header() {
               <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
                 <Link
                   href="/login"
-                  className="px-2.5 sm:px-3 py-1.5 text-xs font-medium text-zinc-700 hover:text-zinc-950 hover:bg-zinc-100 rounded-md transition-colors"
+                  className="hidden sm:inline-flex px-2.5 sm:px-3 py-1.5 text-xs font-medium text-zinc-700 hover:text-zinc-950 hover:bg-zinc-100 rounded-md transition-colors"
                 >
                   Log in
                 </Link>

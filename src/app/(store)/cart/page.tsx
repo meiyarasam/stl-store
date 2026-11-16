@@ -51,7 +51,7 @@ export default function CartPage() {
             const primaryImg =
               item.product.images?.find((i) => i.isPrimary)?.url ||
               item.product.images?.[0]?.url ||
-              "https://images.unsplash.com/photo-1563089145-599997674d42?auto=format&fit=crop&w=400&q=80";
+              "/images/logo.png";
 
             return (
               <div key={item.product.id} className="p-3.5 sm:p-6 flex flex-col sm:flex-row gap-4 sm:gap-5 items-start sm:items-center justify-between w-full">

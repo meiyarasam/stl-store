@@ -323,7 +323,7 @@ export async function getAllCategories(): Promise<SampleCategory[]> {
           name: c.name,
           slug: c.slug,
           description: c.description || "",
-          image: c.image || "https://images.unsplash.com/photo-1563089145-599997674d42?auto=format&fit=crop&w=800&q=80",
+          image: c.image || "/images/logo.png",
           icon: c.icon || "Folder",
           isFeatured: c.isFeatured,
         }));

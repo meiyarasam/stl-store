@@ -64,7 +64,7 @@ export function CartDrawer() {
               <div className="divide-y divide-zinc-100">
                 {cart.map((item) => {
                   const { amount } = getProductPrice(item.product);
-                  const primaryImg = item.product.images?.find((i) => i.isPrimary)?.url || item.product.images?.[0]?.url || "https://images.unsplash.com/photo-1563089145-599997674d42?auto=format&fit=crop&w=400&q=80";
+                  const primaryImg = item.product.images?.find((i) => i.isPrimary)?.url || item.product.images?.[0]?.url || "/images/logo.png";
 
                   return (
                     <div key={item.product.id} className="py-3.5 sm:py-4 flex gap-3 sm:gap-4 items-start">

@@ -18,7 +18,7 @@ export function ProductGallery({ images, title }: ProductGalleryProps) {
       : [
           {
             id: "default_img",
-            url: "https://images.unsplash.com/photo-1563089145-599997674d42?auto=format&fit=crop&w=1200&q=80",
+            url: "/images/logo.png",
             altText: title,
             isPrimary: true,
             sortOrder: 0,

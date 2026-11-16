@@ -232,7 +232,7 @@ export async function processFileDownload({
         }
 
         return {
-          downloadUrl: `/api/downloads/stream?fileId=${encodeURIComponent(download.productFile.id)}`,
+          downloadUrl: `/api/downloads/stream?fileId=${encodeURIComponent(download.productFile.id)}&downloadId=${encodeURIComponent(download.id)}`,
           fileName: download.productFile.fileName,
           isStream: true,
         };

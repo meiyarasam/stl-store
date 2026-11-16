@@ -35,7 +35,14 @@ export async function POST(req: Request) {
     const userRole = (session?.user as any)?.role?.toUpperCase();
     const userEmail = session?.user?.email?.toLowerCase().trim();
     const adminEmail = (process.env.ADMIN_DEFAULT_EMAIL || "admin@theprintfactory.com").toLowerCase().trim();
-    const isAuthorized = userRole === "ADMIN" || userEmail === adminEmail;
+    let isAuthorized = userRole === "ADMIN" || userEmail === adminEmail;
+
+    if (!isAuthorized && userEmail) {
+      const dbUser = await prisma.user.findUnique({ where: { email: userEmail } }).catch(() => null);
+      if (dbUser?.role === "ADMIN") {
+        isAuthorized = true;
+      }
+    }
 
     if (!isAuthorized && process.env.NODE_ENV === "production") {
       return NextResponse.json(
@@ -190,7 +197,7 @@ export async function POST(req: Request) {
           })),
         },
         images: {
-          create: (images && images.length > 0 ? images : ["https://images.unsplash.com/photo-1586105251261-72a756497a11?auto=format&fit=crop&w=1000&q=80"]).filter(Boolean).map((imgUrl: string, idx: number) => ({
+          create: (images && images.length > 0 ? images : ["/images/logo.png"]).filter(Boolean).map((imgUrl: string, idx: number) => ({
             url: imgUrl,
             altText: title.trim(),
             isPrimary: idx === 0,

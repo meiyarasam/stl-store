@@ -30,8 +30,8 @@ export function BrandLogo({
   const { img, text, sub } = sizeMap[size];
 
   const content = (
-    <div className={`flex items-center gap-2 sm:gap-3 shrink-0 ${className}`}>
-      <div className="relative shrink-0 overflow-hidden rounded-md bg-white border border-zinc-200/80 shadow-sm p-0.5">
+    <div className={`flex items-center gap-2 sm:gap-2.5 shrink-0 ${className}`}>
+      <div className="relative shrink-0 overflow-hidden rounded-md bg-white border border-zinc-200/80 shadow-xs p-0.5">
         <Image
           src={BRAND.logoUrl}
           alt={BRAND.name}
@@ -43,7 +43,7 @@ export function BrandLogo({
       </div>
 
       {showText && (
-        <div className="flex flex-col justify-center leading-tight min-w-0">
+        <div className="flex flex-col justify-center leading-tight min-w-0 shrink-0">
           <span
             className={`font-black tracking-tight font-display whitespace-nowrap ${text} ${
               theme === "dark" ? "text-white" : "text-zinc-950"
@@ -54,7 +54,7 @@ export function BrandLogo({
           </span>
           {showTagline && (
             <span
-              className={`block font-semibold tracking-widest uppercase mt-0.5 ${sub} truncate ${
+              className={`hidden sm:block font-semibold tracking-widest uppercase mt-0.5 ${sub} truncate ${
                 theme === "dark" ? "text-zinc-400" : "text-zinc-500"
               }`}
             >

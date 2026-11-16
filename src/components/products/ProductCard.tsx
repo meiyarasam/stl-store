@@ -24,7 +24,7 @@ export function ProductCard({ product }: ProductCardProps) {
   const primaryImg =
     product.images?.find((img) => img.isPrimary)?.url ||
     product.images?.[0]?.url ||
-    "https://images.unsplash.com/photo-1563089145-599997674d42?auto=format&fit=crop&w=600&q=80";
+    "/images/logo.png";
 
   const handleBuyNow = (e: React.MouseEvent) => {
     e.preventDefault();
