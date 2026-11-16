@@ -3,6 +3,11 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/authOptions";
 import prisma, { isDatabaseReachable } from "@/lib/database/prisma";
 import { getAllProducts } from "@/lib/database/products";
+import {
+  getLiveExchangeRates,
+  calculateConvertedPrices,
+  SupportedTargetCurrency,
+} from "@/services/currency.service";
 
 export const dynamic = "force-dynamic";
 
@@ -60,6 +65,47 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Product title is required." }, { status: 400 });
     }
 
+    // 1. Resolve INR base price
+    const inrBasePrice = Number(body.inrPrice || prices?.INR || 0);
+    if (!inrBasePrice || inrBasePrice <= 0) {
+      return NextResponse.json(
+        { error: "A valid positive INR product price (₹) is required." },
+        { status: 400 }
+      );
+    }
+
+    // 2. Resolve live exchange rates
+    let exchangeRatesMap: Record<SupportedTargetCurrency, number>;
+    try {
+      const exchangeData = await getLiveExchangeRates();
+      exchangeRatesMap = exchangeData.rates;
+    } catch (ratesErr: any) {
+      if (body.exchangeRates && typeof body.exchangeRates === "object") {
+        exchangeRatesMap = body.exchangeRates;
+      } else {
+        return NextResponse.json(
+          {
+            error:
+              "Unable to retrieve live exchange rates to calculate global currency prices. Please try again.",
+          },
+          { status: 503 }
+        );
+      }
+    }
+
+    // 3. Compute converted prices for USD, EUR, GBP, CAD, AUD, JPY
+    const convertedPrices = calculateConvertedPrices(inrBasePrice, exchangeRatesMap);
+
+    const priceRecords = [
+      { currency: "INR", amount: inrBasePrice, exchangeRate: 1.0 },
+      { currency: "USD", amount: convertedPrices.USD, exchangeRate: exchangeRatesMap.USD },
+      { currency: "EUR", amount: convertedPrices.EUR, exchangeRate: exchangeRatesMap.EUR },
+      { currency: "GBP", amount: convertedPrices.GBP, exchangeRate: exchangeRatesMap.GBP },
+      { currency: "CAD", amount: convertedPrices.CAD, exchangeRate: exchangeRatesMap.CAD },
+      { currency: "AUD", amount: convertedPrices.AUD, exchangeRate: exchangeRatesMap.AUD },
+      { currency: "JPY", amount: convertedPrices.JPY, exchangeRate: exchangeRatesMap.JPY },
+    ];
+
     const baseSlug = (slug || title || "product")
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
@@ -79,6 +125,12 @@ export async function POST(req: Request) {
         licenceType: licenceType || "Personal Use Only (Non-Commercial)",
         isPublished: isPublished ?? true,
         isFeatured: isFeatured ?? false,
+        prices: priceRecords.map((p) => ({
+          currency: p.currency,
+          amount: p.amount,
+          exchangeRate: p.exchangeRate,
+          isEnabled: true,
+        })),
       };
       return NextResponse.json({ success: true, product: mockProduct }, { status: 201 });
     }
@@ -130,9 +182,10 @@ export async function POST(req: Request) {
         isPublished: isPublished ?? true,
         isFeatured: isFeatured ?? false,
         prices: {
-          create: Object.entries(prices || {}).map(([currency, amount]) => ({
-            currency,
-            amount: Number(amount) || 0,
+          create: priceRecords.map((p) => ({
+            currency: p.currency,
+            amount: p.amount,
+            exchangeRate: p.exchangeRate,
             isEnabled: true,
           })),
         },

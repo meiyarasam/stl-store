@@ -164,6 +164,7 @@ model ProductPrice {
   currency        String   // INR, USD, EUR, GBP, CAD, AUD, JPY
   amount          Decimal  @db.Decimal(10, 2)
   compareAtAmount Decimal? @db.Decimal(10, 2)
+  exchangeRate    Decimal? @db.Decimal(12, 6)
   isEnabled       Boolean  @default(true)
 
   createdAt       DateTime @default(now())

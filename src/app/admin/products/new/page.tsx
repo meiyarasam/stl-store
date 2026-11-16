@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { AdminNav } from "@/components/admin/AdminNav";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import {
   FileArchive,
   Image as ImageIcon,
   Loader2,
+  RefreshCw,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -52,14 +53,60 @@ export default function NewProductPage() {
   const [zipStoragePath, setZipStoragePath] = useState<string>("");
   const [isUploadingZip, setIsUploadingZip] = useState(false);
 
-  // Multi-Currency Prices
-  const [priceUSD, setPriceUSD] = useState("9.99");
-  const [priceINR, setPriceINR] = useState("699");
-  const [priceEUR, setPriceEUR] = useState("9.49");
-  const [priceGBP, setPriceGBP] = useState("8.49");
-  const [priceCAD, setPriceCAD] = useState("13.99");
-  const [priceAUD, setPriceAUD] = useState("15.99");
-  const [priceJPY, setPriceJPY] = useState("1500");
+  // Product Base Price & Live Currency Conversion (Only INR is manually editable)
+  const [priceINR, setPriceINR] = useState("999");
+  const [exchangeRates, setExchangeRates] = useState<Record<string, number> | null>(null);
+  const [ratesLastUpdated, setRatesLastUpdated] = useState<string | null>(null);
+  const [isLoadingRates, setIsLoadingRates] = useState<boolean>(true);
+  const [ratesError, setRatesError] = useState<string | null>(null);
+
+  // Fetch live exchange rates on mount and on user refresh
+  const fetchRates = async (forceRefresh = false) => {
+    setIsLoadingRates(true);
+    setRatesError(null);
+    try {
+      const res = await fetch(`/api/currency/rates${forceRefresh ? "?refresh=true" : ""}`);
+      const data = await res.json();
+      if (!res.ok || !data.success || !data.rates) {
+        throw new Error(data.error || "Failed to load live exchange rates.");
+      }
+      setExchangeRates(data.rates);
+      setRatesLastUpdated(data.lastUpdated || new Date().toUTCString());
+    } catch (err: any) {
+      console.error("Exchange rate fetch error:", err);
+      setRatesError(err.message || "Failed to retrieve live exchange rates.");
+    } finally {
+      setIsLoadingRates(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchRates();
+  }, []);
+
+  // Compute converted prices in real-time based on INR input
+  const inrNumeric = Math.max(0, parseFloat(priceINR) || 0);
+
+  const convertedPrices = useMemo(() => {
+    if (!exchangeRates || inrNumeric <= 0) {
+      return {
+        USD: 0,
+        EUR: 0,
+        GBP: 0,
+        CAD: 0,
+        AUD: 0,
+        JPY: 0,
+      };
+    }
+    return {
+      USD: Number((inrNumeric * (exchangeRates.USD || 0.01059)).toFixed(2)),
+      EUR: Number((inrNumeric * (exchangeRates.EUR || 0.00962)).toFixed(2)),
+      GBP: Number((inrNumeric * (exchangeRates.GBP || 0.00803)).toFixed(2)),
+      CAD: Number((inrNumeric * (exchangeRates.CAD || 0.01514)).toFixed(2)),
+      AUD: Number((inrNumeric * (exchangeRates.AUD || 0.01563)).toFixed(2)),
+      JPY: Number((inrNumeric * (exchangeRates.JPY || 1.69658)).toFixed(2)),
+    };
+  }, [inrNumeric, exchangeRates]);
 
   // Form State
   const [isLoading, setIsLoading] = useState(false);
@@ -202,6 +249,22 @@ export default function NewProductPage() {
       return;
     }
 
+    if (!priceINR.trim() || inrNumeric <= 0) {
+      setMessage({
+        text: "Please enter a valid INR base price (₹) greater than 0.",
+        type: "error",
+      });
+      return;
+    }
+
+    if (ratesError || !exchangeRates) {
+      setMessage({
+        text: "Cannot publish product: Live currency exchange rates could not be retrieved. Please check your connection and click Retry.",
+        type: "error",
+      });
+      return;
+    }
+
     if (!imageUrl.trim()) {
       setMessage({ text: "Please provide a valid preview image URL or upload an image.", type: "error" });
       return;
@@ -237,14 +300,16 @@ export default function NewProductPage() {
         licenceType: licenceType.trim() || "Personal Use Only (Non-Commercial)",
         isPublished: true,
         isFeatured: false,
+        inrPrice: inrNumeric,
+        exchangeRates: exchangeRates,
         prices: {
-          USD: parseFloat(priceUSD) || 9.99,
-          INR: parseFloat(priceINR) || 699,
-          EUR: parseFloat(priceEUR) || 9.49,
-          GBP: parseFloat(priceGBP) || 8.49,
-          CAD: parseFloat(priceCAD) || 13.99,
-          AUD: parseFloat(priceAUD) || 15.99,
-          JPY: parseFloat(priceJPY) || 1500,
+          INR: inrNumeric,
+          USD: convertedPrices.USD,
+          EUR: convertedPrices.EUR,
+          GBP: convertedPrices.GBP,
+          CAD: convertedPrices.CAD,
+          AUD: convertedPrices.AUD,
+          JPY: convertedPrices.JPY,
         },
         images: [imageUrl.trim()],
         files: [
@@ -458,106 +523,206 @@ export default function NewProductPage() {
             </div>
           </div>
 
-          {/* Section 2: Multi-Currency Pricing */}
-          <div className="space-y-4 pt-4 border-t border-zinc-100">
-            <div className="flex items-center justify-between pb-2 border-b border-zinc-100">
-              <h2 className="text-xs font-bold text-zinc-900 uppercase tracking-wider flex items-center gap-2">
-                <DollarSign className="w-4 h-4 text-emerald-600" />
-                2. Multi-Currency Pricing
-              </h2>
-              <span className="text-[11px] text-zinc-400">Independent manual pricing per currency</span>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {/* Section 2: Product Pricing & Automated Currency Conversion */}
+          <div className="space-y-5 pt-4 border-t border-zinc-100">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-zinc-100">
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">
-                  USD Price ($) *
-                </label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  required
-                  value={priceUSD}
-                  onChange={(e) => setPriceUSD(e.target.value)}
-                />
+                <h2 className="text-xs font-bold text-zinc-900 uppercase tracking-wider flex items-center gap-2">
+                  <DollarSign className="w-4 h-4 text-emerald-600" />
+                  2. Product Base Pricing & Currency Conversion
+                </h2>
+                <p className="text-[11px] text-zinc-500 mt-0.5">
+                  INR is the base currency. All other currency prices are automatically calculated using current exchange rates.
+                </p>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">
-                  INR Price (₹) *
-                </label>
+              {/* Live Exchange Rate Status */}
+              <div className="flex items-center gap-2 self-start sm:self-auto">
+                {isLoadingRates ? (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                    <Loader2 className="w-3 h-3 animate-spin" /> Fetching live rates...
+                  </span>
+                ) : ratesError ? (
+                  <button
+                    type="button"
+                    onClick={() => fetchRates(true)}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors"
+                  >
+                    <AlertCircle className="w-3 h-3 text-red-600" /> Rates failed · Retry
+                  </button>
+                ) : (
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <span>Live Exchange Rates</span>
+                    <button
+                      type="button"
+                      title="Refresh Exchange Rates"
+                      onClick={() => fetchRates(true)}
+                      className="hover:text-emerald-900 p-0.5 rounded transition-colors ml-0.5"
+                    >
+                      <RefreshCw className="w-2.5 h-2.5" />
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {ratesError && (
+              <div className="p-3.5 bg-red-50 border border-red-200 rounded-xl text-xs text-red-800 flex items-start gap-2.5">
+                <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <span className="font-semibold">Live Exchange Rate Notice:</span> {ratesError}
+                  <button
+                    type="button"
+                    onClick={() => fetchRates(true)}
+                    className="ml-2 font-bold underline hover:text-red-950"
+                  >
+                    Click to retry
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Product Base Price (INR) - The ONLY editable price field */}
+            <div className="bg-gradient-to-r from-blue-50/70 via-indigo-50/40 to-white border border-blue-200/90 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+                <div>
+                  <label className="block text-xs font-bold text-zinc-950 flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-blue-600" />
+                    Product Base Price — INR Price (₹) *
+                  </label>
+                  <p className="text-[11px] text-zinc-500 mt-0.5">
+                    Enter the master product price in Indian Rupees. All 6 international currencies convert from this value.
+                  </p>
+                </div>
+                <span className="text-[11px] font-bold text-blue-700 bg-white px-2.5 py-1 rounded-lg border border-blue-200/90 shadow-2xs self-start sm:self-auto">
+                  Editable Base Currency
+                </span>
+              </div>
+
+              <div className="relative max-w-xs">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-zinc-600 font-bold text-base">
+                  ₹
+                </div>
                 <Input
                   type="number"
                   step="1"
+                  min="1"
                   required
                   value={priceINR}
                   onChange={(e) => setPriceINR(e.target.value)}
+                  placeholder="e.g. 999"
+                  className="pl-8 text-base font-bold text-zinc-950 bg-white shadow-sm border-blue-300 focus:border-blue-600 focus:ring-blue-600 h-11"
                 />
               </div>
+            </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">
-                  EUR Price (€) *
-                </label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  required
-                  value={priceEUR}
-                  onChange={(e) => setPriceEUR(e.target.value)}
-                />
+            {/* Automatically Converted Prices - Read Only */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-bold text-zinc-800 uppercase tracking-wider flex items-center gap-1.5">
+                  Automatically Converted Prices
+                </h3>
+                <span className="text-[11px] text-zinc-400 font-medium">
+                  Read-only · Rounded to 2 decimal places
+                </span>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">
-                  GBP Price (£) *
-                </label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  required
-                  value={priceGBP}
-                  onChange={(e) => setPriceGBP(e.target.value)}
-                />
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                {[
+                  {
+                    code: "USD",
+                    symbol: "$",
+                    name: "US Dollar",
+                    flag: "🇺🇸",
+                    rate: exchangeRates?.USD || 0.01059,
+                    amount: convertedPrices.USD,
+                  },
+                  {
+                    code: "EUR",
+                    symbol: "€",
+                    name: "Euro",
+                    flag: "🇪🇺",
+                    rate: exchangeRates?.EUR || 0.00962,
+                    amount: convertedPrices.EUR,
+                  },
+                  {
+                    code: "GBP",
+                    symbol: "£",
+                    name: "British Pound",
+                    flag: "🇬🇧",
+                    rate: exchangeRates?.GBP || 0.00803,
+                    amount: convertedPrices.GBP,
+                  },
+                  {
+                    code: "CAD",
+                    symbol: "CA$",
+                    name: "Canadian Dollar",
+                    flag: "🇨🇦",
+                    rate: exchangeRates?.CAD || 0.01514,
+                    amount: convertedPrices.CAD,
+                  },
+                  {
+                    code: "AUD",
+                    symbol: "A$",
+                    name: "Australian Dollar",
+                    flag: "🇦🇺",
+                    rate: exchangeRates?.AUD || 0.01563,
+                    amount: convertedPrices.AUD,
+                  },
+                  {
+                    code: "JPY",
+                    symbol: "¥",
+                    name: "Japanese Yen",
+                    flag: "🇯🇵",
+                    rate: exchangeRates?.JPY || 1.69658,
+                    amount: convertedPrices.JPY,
+                  },
+                ].map((item) => (
+                  <div
+                    key={item.code}
+                    className="bg-zinc-50/80 border border-zinc-200/90 rounded-xl p-3 flex flex-col justify-between transition-all hover:bg-zinc-100/60 hover:border-zinc-300"
+                  >
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-xs font-bold text-zinc-700 flex items-center gap-1">
+                        <span>{item.flag}</span>
+                        <span>{item.code}</span>
+                        <span className="text-zinc-400 font-normal">({item.symbol})</span>
+                      </span>
+                      <span className="text-[9px] uppercase tracking-wider font-semibold text-zinc-500 bg-zinc-200/80 px-1 py-0.5 rounded">
+                        Read-Only
+                      </span>
+                    </div>
+
+                    <div className="my-1">
+                      <div className="text-lg font-black text-zinc-950 font-mono tracking-tight">
+                        {item.symbol}{item.amount.toFixed(2)}
+                      </div>
+                      <div className="text-[10px] text-zinc-500 truncate">
+                        {item.name}
+                      </div>
+                    </div>
+
+                    <div className="mt-2 pt-1.5 border-t border-zinc-200/60 text-[10px] text-zinc-400 font-mono truncate">
+                      1 ₹ = {item.rate < 0.1 ? item.rate.toFixed(5) : item.rate.toFixed(3)}
+                    </div>
+                  </div>
+                ))}
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">
-                  CAD Price ($) *
-                </label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  required
-                  value={priceCAD}
-                  onChange={(e) => setPriceCAD(e.target.value)}
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">
-                  AUD Price ($) *
-                </label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  required
-                  value={priceAUD}
-                  onChange={(e) => setPriceAUD(e.target.value)}
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">
-                  JPY Price (¥) *
-                </label>
-                <Input
-                  type="number"
-                  step="1"
-                  required
-                  value={priceJPY}
-                  onChange={(e) => setPriceJPY(e.target.value)}
-                />
+              {/* Note Banner */}
+              <div className="p-3.5 bg-zinc-50 border border-zinc-200/80 rounded-xl text-xs text-zinc-600 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <p className="flex items-center gap-1.5">
+                  <span className="text-blue-600 font-bold">ℹ</span>
+                  <span>
+                    <strong>Note:</strong> INR is the base currency. All other currency prices are automatically calculated using current exchange rates.
+                  </span>
+                </p>
+                {ratesLastUpdated && (
+                  <span className="text-zinc-400 text-[11px] font-mono whitespace-nowrap">
+                    Last updated: {ratesLastUpdated}
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -739,9 +904,14 @@ export default function NewProductPage() {
               variant="primary"
               size="lg"
               isLoading={isLoading}
-              className="w-full text-sm font-bold shadow-md bg-zinc-950 text-white hover:bg-zinc-800 active:bg-zinc-900 transition-all py-3.5 h-auto"
+              disabled={isLoading || Boolean(ratesError) || !exchangeRates}
+              className="w-full text-sm font-bold shadow-md bg-zinc-950 text-white hover:bg-zinc-800 active:bg-zinc-900 transition-all py-3.5 h-auto disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? "Publishing Product to The Print Factory..." : "Publish Product to Marketplace"}
+              {isLoading
+                ? "Publishing Product to The Print Factory..."
+                : ratesError
+                ? "Exchange Rates Required to Publish"
+                : "Publish Product to Marketplace"}
             </Button>
           </div>
         </form>
