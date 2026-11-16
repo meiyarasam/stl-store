@@ -46,10 +46,10 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-zinc-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 gap-4">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-14 sm:h-16 gap-2 sm:gap-4">
           {/* Logo */}
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-2 sm:gap-6 min-w-0 shrink">
             <BrandLogo size="md" />
 
             {/* Desktop Navigation Links */}
@@ -60,11 +60,10 @@ export function Header() {
                   <Link
                     key={link.href}
                     href={link.href}
-                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                      isActive
-                        ? "text-zinc-950 bg-zinc-100 font-semibold"
-                        : "text-zinc-600 hover:text-zinc-950 hover:bg-zinc-50"
-                    }`}
+                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${isActive
+                      ? "text-zinc-950 bg-zinc-100 font-semibold"
+                      : "text-zinc-600 hover:text-zinc-950 hover:bg-zinc-50"
+                      }`}
                   >
                     {link.label}
                   </Link>
@@ -96,19 +95,19 @@ export function Header() {
           </div>
 
           {/* Right Action Icons & Selectors */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1 sm:gap-2.5 shrink-0">
             {/* International Currency Selector */}
             <CurrencySelector />
 
             {/* Cart Button */}
             <button
               onClick={() => setIsCartOpen(true)}
-              className="relative p-2 text-zinc-700 hover:text-zinc-950 hover:bg-zinc-100 rounded-md transition-colors"
+              className="relative p-1.5 sm:p-2 text-zinc-700 hover:text-zinc-950 hover:bg-zinc-100 rounded-md transition-colors shrink-0 touch-manipulation"
               aria-label="View Shopping Cart"
             >
               <ShoppingBag className="w-5 h-5" />
               {cartCount > 0 && (
-                <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-zinc-950 text-white text-[10px] font-bold flex items-center justify-center animate-in zoom-in-50">
+                <span className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-zinc-950 text-white text-[10px] font-bold flex items-center justify-center animate-in zoom-in-50">
                   {cartCount}
                 </span>
               )}
@@ -116,10 +115,10 @@ export function Header() {
 
             {/* User Account / Auth Dropdown */}
             {session?.user ? (
-              <div className="relative">
+              <div className="relative shrink-0">
                 <button
                   onClick={() => setAccountMenuOpen(!accountMenuOpen)}
-                  className="flex items-center gap-1.5 p-1.5 sm:px-2.5 sm:py-1.5 text-xs font-medium text-zinc-700 hover:text-zinc-950 hover:bg-zinc-100 rounded-md border border-zinc-200 transition-colors"
+                  className="flex items-center gap-1.5 p-1.5 sm:px-2.5 sm:py-1.5 text-xs font-medium text-zinc-700 hover:text-zinc-950 hover:bg-zinc-100 rounded-md border border-zinc-200 transition-colors touch-manipulation"
                 >
                   <User className="w-4 h-4 text-zinc-600" />
                   <span className="hidden sm:inline max-w-[100px] truncate">
@@ -184,10 +183,10 @@ export function Header() {
                 )}
               </div>
             ) : (
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
                 <Link
                   href="/login"
-                  className="px-3 py-1.5 text-xs font-medium text-zinc-700 hover:text-zinc-950 hover:bg-zinc-100 rounded-md transition-colors"
+                  className="px-2.5 sm:px-3 py-1.5 text-xs font-medium text-zinc-700 hover:text-zinc-950 hover:bg-zinc-100 rounded-md transition-colors"
                 >
                   Log in
                 </Link>
@@ -203,7 +202,8 @@ export function Header() {
             {/* Mobile Hamburger Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 text-zinc-700 hover:text-zinc-950 rounded-md"
+              className="md:hidden p-1.5 sm:p-2 text-zinc-700 hover:text-zinc-950 rounded-md shrink-0 touch-manipulation"
+              aria-label="Toggle mobile menu"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>

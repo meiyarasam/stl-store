@@ -21,8 +21,8 @@ export function BrandLogo({
   className = "",
 }: BrandLogoProps) {
   const sizeMap = {
-    sm: { img: 32, text: "text-base", sub: "text-[8px]" },
-    md: { img: 40, text: "text-lg sm:text-xl", sub: "text-[9px]" },
+    sm: { img: 28, text: "text-sm", sub: "text-[7px]" },
+    md: { img: 36, text: "text-sm sm:text-lg md:text-xl", sub: "text-[7px] sm:text-[9px]" },
     lg: { img: 64, text: "text-2xl", sub: "text-xs" },
     xl: { img: 96, text: "text-3xl", sub: "text-xs" },
   };
@@ -30,22 +30,22 @@ export function BrandLogo({
   const { img, text, sub } = sizeMap[size];
 
   const content = (
-    <div className={`flex items-center gap-3 ${className}`}>
-      <div className="relative flex-shrink-0 overflow-hidden rounded-md bg-white border border-zinc-200/80 shadow-sm p-0.5">
+    <div className={`flex items-center gap-2 sm:gap-3 shrink-0 ${className}`}>
+      <div className="relative shrink-0 overflow-hidden rounded-md bg-white border border-zinc-200/80 shadow-sm p-0.5">
         <Image
           src={BRAND.logoUrl}
           alt={BRAND.name}
           width={img}
           height={img}
-          className="object-contain"
+          className="object-contain w-7 h-7 sm:w-9 sm:h-9"
           priority
         />
       </div>
 
       {showText && (
-        <div className="flex flex-col justify-center leading-tight">
+        <div className="flex flex-col justify-center leading-tight min-w-0">
           <span
-            className={`font-black tracking-tight font-display ${text} ${
+            className={`font-black tracking-tight font-display whitespace-nowrap ${text} ${
               theme === "dark" ? "text-white" : "text-zinc-950"
             }`}
           >
@@ -54,7 +54,7 @@ export function BrandLogo({
           </span>
           {showTagline && (
             <span
-              className={`block font-semibold tracking-widest uppercase mt-0.5 text-[8px] sm:text-[9px] ${
+              className={`block font-semibold tracking-widest uppercase mt-0.5 ${sub} truncate ${
                 theme === "dark" ? "text-zinc-400" : "text-zinc-500"
               }`}
             >

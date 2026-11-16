@@ -36,14 +36,14 @@ export function ProductPurchaseCard({ product }: ProductPurchaseCardProps) {
   };
 
   return (
-    <div className="bg-white rounded-xl border border-zinc-200 p-6 shadow-sm space-y-6">
+    <div className="bg-white rounded-xl border border-zinc-200 p-4 sm:p-6 shadow-sm space-y-5 sm:space-y-6 w-full max-w-full overflow-hidden">
       {/* Pricing Header */}
       <div>
-        <div className="flex items-baseline justify-between">
-          <span className="text-3xl font-black text-zinc-950 font-mono tracking-tight">
+        <div className="flex items-baseline justify-between gap-2">
+          <span className="text-2xl sm:text-3xl font-black text-zinc-950 font-mono tracking-tight">
             {formatAmount(amount)}
           </span>
-          <span className="text-xs font-semibold px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-full border border-emerald-200">
+          <span className="text-[11px] sm:text-xs font-semibold px-2 sm:px-2.5 py-0.5 sm:py-1 bg-emerald-50 text-emerald-700 rounded-full border border-emerald-200 shrink-0">
             Digital STL & ZIP
           </span>
         </div>
@@ -53,14 +53,14 @@ export function ProductPurchaseCard({ product }: ProductPurchaseCardProps) {
       </div>
 
       {/* Action Buttons */}
-      <div className="space-y-3">
+      <div className="space-y-3 w-full">
         <Button
           onClick={handleBuyNow}
           variant="primary"
           size="lg"
-          className="w-full text-sm font-bold shadow-md"
+          className="w-full min-h-[48px] text-xs sm:text-sm font-bold shadow-md touch-manipulation"
         >
-          <Zap className="w-4 h-4 mr-2 text-amber-300 fill-amber-300" />
+          <Zap className="w-4 h-4 mr-2 text-amber-300 fill-amber-300 shrink-0" />
           Buy Now – Instant Download
         </Button>
 
@@ -68,7 +68,7 @@ export function ProductPurchaseCard({ product }: ProductPurchaseCardProps) {
           onClick={handleAddToCart}
           variant="secondary"
           size="lg"
-          className="w-full text-sm font-semibold"
+          className="w-full min-h-[48px] text-xs sm:text-sm font-semibold touch-manipulation"
         >
           {isAdded ? (
             <>

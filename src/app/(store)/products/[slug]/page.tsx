@@ -30,33 +30,33 @@ export default async function ProductDetailsPage({ params }: ProductDetailsPageP
     .slice(0, 3);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-12">
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-10 space-y-8 sm:space-y-12 w-full max-w-full overflow-x-hidden">
       {/* Breadcrumb */}
-      <nav className="text-xs text-zinc-500 flex items-center gap-1.5 font-medium">
-        <Link href="/" className="hover:text-zinc-900">
+      <nav className="text-xs text-zinc-500 flex items-center gap-1.5 font-medium overflow-x-auto py-1 scrollbar-none">
+        <Link href="/" className="hover:text-zinc-900 shrink-0">
           Home
         </Link>
-        <span>/</span>
-        <Link href="/products" className="hover:text-zinc-900">
+        <span className="shrink-0">/</span>
+        <Link href="/products" className="hover:text-zinc-900 shrink-0">
           Products
         </Link>
         {product.category && (
           <>
-            <span>/</span>
+            <span className="shrink-0">/</span>
             <Link
               href={`/categories/${product.category.slug}`}
-              className="hover:text-zinc-900"
+              className="hover:text-zinc-900 shrink-0"
             >
               {product.category.name}
             </Link>
           </>
         )}
-        <span>/</span>
+        <span className="shrink-0">/</span>
         <span className="text-zinc-900 truncate max-w-xs">{product.title}</span>
       </nav>
 
       {/* Main Product Showcase Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10">
         {/* Left Column: Gallery & In-Depth Specs */}
         <div className="lg:col-span-7 space-y-10">
           <ProductGallery images={product.images} title={product.title} />

@@ -13,12 +13,12 @@ interface CartSummaryProps {
 
 export function CartSummary({ cartTotal, formatAmount, currency }: CartSummaryProps) {
   return (
-    <div className="bg-white border border-zinc-200 rounded-xl p-6 space-y-6 shadow-sm sticky top-24">
+    <div className="bg-white border border-zinc-200 rounded-xl p-4 sm:p-6 space-y-4 sm:space-y-6 shadow-sm sticky top-24 w-full max-w-full overflow-hidden">
       <h2 className="text-base font-black text-zinc-950 tracking-tight font-display border-b border-zinc-100 pb-3">
         Order Summary
       </h2>
 
-      <div className="space-y-3 text-xs">
+      <div className="space-y-2.5 sm:space-y-3 text-xs w-full">
         <div className="flex justify-between text-zinc-600">
           <span>Digital Subtotal</span>
           <span className="font-mono font-medium text-zinc-900">{formatAmount(cartTotal)}</span>
@@ -32,8 +32,8 @@ export function CartSummary({ cartTotal, formatAmount, currency }: CartSummaryPr
           <span className="text-emerald-600 font-medium">Instant Download</span>
         </div>
         <div className="pt-3 border-t border-zinc-200 flex justify-between items-baseline">
-          <span className="text-sm font-bold text-zinc-950">Total Amount</span>
-          <span className="text-2xl font-black text-zinc-950 font-mono">
+          <span className="text-xs sm:text-sm font-bold text-zinc-950">Total Amount</span>
+          <span className="text-xl sm:text-2xl font-black text-zinc-950 font-mono">
             {formatAmount(cartTotal)}
           </span>
         </div>
@@ -42,16 +42,16 @@ export function CartSummary({ cartTotal, formatAmount, currency }: CartSummaryPr
         </p>
       </div>
 
-      <div className="space-y-3 pt-2">
+      <div className="space-y-3 pt-2 w-full">
         <Link href="/checkout" className="block w-full">
-          <Button variant="primary" size="lg" className="w-full text-xs font-bold gap-2">
-            Proceed to Secure Checkout <ArrowRight className="w-4 h-4" />
+          <Button variant="primary" size="lg" className="w-full text-xs sm:text-sm font-bold gap-2 min-h-[48px] touch-manipulation shadow-sm">
+            Proceed to Secure Checkout <ArrowRight className="w-4 h-4 shrink-0" />
           </Button>
         </Link>
 
-        <div className="flex items-center justify-center gap-2 text-[11px] text-zinc-500 pt-2">
-          <ShieldCheck className="w-4 h-4 text-emerald-600" />
-          <span>Encrypted Razorpay Checkout</span>
+        <div className="flex items-center justify-center gap-1.5 text-[11px] text-zinc-500 pt-1">
+          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+          <span className="truncate">Encrypted Razorpay Checkout</span>
         </div>
       </div>
     </div>

@@ -75,11 +75,10 @@ export function AdminNav() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-md text-xs font-semibold transition-colors shrink-0 ${
-                    isActive
-                      ? "bg-zinc-800 text-white shadow-xs"
-                      : "text-zinc-400 hover:text-white hover:bg-zinc-900"
-                  }`}
+                  className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-md text-xs font-semibold transition-colors shrink-0 ${isActive
+                    ? "bg-zinc-800 text-white shadow-xs"
+                    : "text-zinc-400 hover:text-white hover:bg-zinc-900"
+                    }`}
                   title={link.label}
                 >
                   <Icon className="w-3.5 h-3.5 shrink-0" />

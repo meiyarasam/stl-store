@@ -55,29 +55,29 @@ export function PrintSpecsTable({ product }: PrintSpecsTableProps) {
         <div className="divide-y divide-zinc-100">
           {product.files && product.files.length > 0 ? (
             product.files.map((file) => (
-              <div key={file.id} className="py-2.5 flex items-center justify-between text-xs">
-                <div className="flex items-center gap-2">
-                  <Box className="w-3.5 h-3.5 text-zinc-400" />
-                  <span className="font-mono text-zinc-800 font-medium">{file.fileName}</span>
-                  <span className="px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-600 text-[10px] font-bold">
+              <div key={file.id} className="py-2.5 flex items-center justify-between text-xs gap-2 w-full">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <Box className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+                  <span className="font-mono text-zinc-800 font-medium truncate" title={file.fileName}>{file.fileName}</span>
+                  <span className="px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-600 text-[10px] font-bold shrink-0">
                     {file.fileType}
                   </span>
                 </div>
-                <span className="text-zinc-400 font-mono text-[11px]">
+                <span className="text-zinc-400 font-mono text-[11px] shrink-0">
                   {file.fileSizeBytes > 0 ? `${(file.fileSizeBytes / (1024 * 1024)).toFixed(1)} MB` : "Ready"}
                 </span>
               </div>
             ))
           ) : (
-            <div className="py-2.5 flex items-center justify-between text-xs">
-              <div className="flex items-center gap-2">
-                <Box className="w-3.5 h-3.5 text-zinc-400" />
-                <span className="font-mono text-zinc-800 font-medium">{product.slug}_complete_pack.zip</span>
-                <span className="px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-600 text-[10px] font-bold">
+            <div className="py-2.5 flex items-center justify-between text-xs gap-2 w-full">
+              <div className="flex items-center gap-2 min-w-0 flex-1">
+                <Box className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+                <span className="font-mono text-zinc-800 font-medium truncate">{product.slug}_complete_pack.zip</span>
+                <span className="px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-600 text-[10px] font-bold shrink-0">
                   ZIP / STL
                 </span>
               </div>
-              <span className="text-zinc-400 font-mono text-[11px]">Direct Download</span>
+              <span className="text-zinc-400 font-mono text-[11px] shrink-0">Direct Download</span>
             </div>
           )}
         </div>

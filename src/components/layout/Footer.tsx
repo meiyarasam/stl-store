@@ -5,9 +5,9 @@ import { BrandLogo } from "@/components/common/BrandLogo";
 
 export function Footer() {
   return (
-    <footer className="bg-charcoal-950 text-zinc-300 border-t border-zinc-800">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10">
+    <footer className="bg-charcoal-950 text-zinc-300 border-t border-zinc-800 w-full overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 sm:gap-10">
           {/* Brand Info */}
           <div className="lg:col-span-2 space-y-4">
             <div>
@@ -20,13 +20,13 @@ export function Footer() {
               The Print Factory is a premier international digital marketplace for precision 3D-printable models, print-in-place mechanisms, collectible busts, and functional designs.
             </p>
 
-            <div className="pt-2 flex items-center gap-4 text-xs text-zinc-400">
+            <div className="pt-2 flex flex-wrap items-center gap-3 sm:gap-4 text-xs text-zinc-400">
               <div className="flex items-center gap-1.5">
-                <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
                 <span>Verified Manifold STLs</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <Download className="w-4 h-4 text-zinc-300" />
+                <Download className="w-4 h-4 text-zinc-300 shrink-0" />
                 <span>Instant Digital Delivery</span>
               </div>
             </div>

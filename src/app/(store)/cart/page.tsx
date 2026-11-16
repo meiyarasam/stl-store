@@ -33,9 +33,9 @@ export default function CartPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-10 space-y-6 sm:space-y-8 w-full max-w-full overflow-x-hidden">
       <div>
-        <h1 className="text-3xl font-black text-zinc-950 tracking-tight font-display">
+        <h1 className="text-2xl sm:text-3xl font-black text-zinc-950 tracking-tight font-display">
           Shopping Cart ({cart.length})
         </h1>
         <p className="text-xs text-zinc-500 mt-1">
@@ -43,9 +43,9 @@ export default function CartPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-start w-full">
         {/* Cart Items List */}
-        <div className="lg:col-span-8 bg-white border border-zinc-200 rounded-xl divide-y divide-zinc-200 overflow-hidden shadow-sm">
+        <div className="lg:col-span-8 bg-white border border-zinc-200 rounded-xl divide-y divide-zinc-200 overflow-hidden shadow-sm w-full max-w-full">
           {cart.map((item) => {
             const { amount } = getProductPrice(item.product);
             const primaryImg =
@@ -54,9 +54,9 @@ export default function CartPage() {
               "https://images.unsplash.com/photo-1563089145-599997674d42?auto=format&fit=crop&w=400&q=80";
 
             return (
-              <div key={item.product.id} className="p-6 flex flex-col sm:flex-row gap-5 items-start sm:items-center justify-between">
-                <div className="flex gap-4 items-center">
-                  <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-zinc-100 border border-zinc-200 flex-shrink-0">
+              <div key={item.product.id} className="p-3.5 sm:p-6 flex flex-col sm:flex-row gap-4 sm:gap-5 items-start sm:items-center justify-between w-full">
+                <div className="flex gap-3 sm:gap-4 items-center flex-1 min-w-0 w-full sm:w-auto">
+                  <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden bg-zinc-100 border border-zinc-200 shrink-0">
                     <Image
                       src={primaryImg}
                       alt={item.product.title}
@@ -65,18 +65,19 @@ export default function CartPage() {
                       className="object-cover"
                     />
                   </div>
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <Link
                       href={`/products/${item.product.slug}`}
-                      className="text-base font-bold text-zinc-900 hover:underline"
+                      className="text-sm sm:text-base font-bold text-zinc-900 hover:underline block truncate"
+                      title={item.product.title}
                     >
                       {item.product.title}
                     </Link>
-                    <p className="text-xs text-zinc-500 mt-0.5">
+                    <p className="text-[11px] sm:text-xs text-zinc-500 mt-0.5 truncate">
                       Formats: STL / ZIP archive • Instant delivery
                     </p>
                     <div className="mt-1 flex items-center gap-2">
-                      <span className="text-xs font-semibold text-zinc-700 bg-zinc-100 px-2 py-0.5 rounded">
+                      <span className="text-[10px] sm:text-xs font-semibold text-zinc-700 bg-zinc-100 px-2 py-0.5 rounded">
                         Qty: {item.quantity}
                       </span>
                     </div>
@@ -84,12 +85,13 @@ export default function CartPage() {
                 </div>
 
                 <div className="flex sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto gap-3 pt-3 sm:pt-0 border-t sm:border-0 border-zinc-100">
-                  <span className="text-lg font-black text-zinc-950 font-mono">
+                  <span className="text-base sm:text-lg font-black text-zinc-950 font-mono">
                     {formatAmount(amount * item.quantity)}
                   </span>
                   <button
                     onClick={() => removeFromCart(item.product.id)}
-                    className="text-xs text-red-600 hover:text-red-700 flex items-center gap-1 font-medium transition-colors"
+                    className="text-xs text-red-600 hover:text-red-700 flex items-center gap-1 font-medium transition-colors p-1 touch-manipulation"
+                    aria-label={`Remove ${item.product.title}`}
                   >
                     <Trash2 className="w-3.5 h-3.5" /> Remove
                   </button>
@@ -98,24 +100,24 @@ export default function CartPage() {
             );
           })}
 
-          <div className="p-4 bg-zinc-50/60 flex items-center justify-between">
+          <div className="p-3.5 sm:p-4 bg-zinc-50/60 flex items-center justify-between gap-2">
             <Link
               href="/products"
-              className="text-xs font-semibold text-zinc-700 hover:text-zinc-950 flex items-center gap-1.5"
+              className="text-xs font-semibold text-zinc-700 hover:text-zinc-950 flex items-center gap-1.5 truncate"
             >
-              <ArrowLeft className="w-3.5 h-3.5" /> Continue Shopping
+              <ArrowLeft className="w-3.5 h-3.5 shrink-0" /> Continue Shopping
             </Link>
             <button
               onClick={clearCart}
-              className="text-xs text-zinc-500 hover:text-zinc-800 transition-colors"
+              className="text-xs text-zinc-500 hover:text-zinc-800 transition-colors shrink-0"
             >
-              Clear Entire Cart
+              Clear Cart
             </button>
           </div>
         </div>
 
         {/* Order Summary Component */}
-        <div className="lg:col-span-4">
+        <div className="lg:col-span-4 w-full max-w-full">
           <CartSummary cartTotal={cartTotal} formatAmount={formatAmount} currency={currency} />
         </div>
       </div>

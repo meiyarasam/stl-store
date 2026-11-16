@@ -256,10 +256,10 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+    <div className="max-w-6xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-10 space-y-6 sm:space-y-8 w-full max-w-full overflow-x-hidden">
       {/* Checkout Header */}
       <div>
-        <h1 className="text-3xl font-black text-zinc-950 tracking-tight font-display">
+        <h1 className="text-2xl sm:text-3xl font-black text-zinc-950 tracking-tight font-display">
           Secure Digital Checkout
         </h1>
         <p className="text-xs text-zinc-500 mt-1">
@@ -268,23 +268,23 @@ export default function CheckoutPage() {
       </div>
 
       {errorMessage && (
-        <div className="p-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
+        <div className="p-3.5 sm:p-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
           <AlertCircle className="w-4 h-4 flex-shrink-0" />
           <span>{errorMessage}</span>
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-start w-full">
         {/* Customer Details Form */}
-        <div className="lg:col-span-7 bg-white border border-zinc-200 rounded-xl p-6 shadow-sm space-y-6">
+        <div className="lg:col-span-7 bg-white border border-zinc-200 rounded-xl p-4 sm:p-6 shadow-sm space-y-5 sm:space-y-6 w-full max-w-full overflow-hidden">
           <div>
-            <h2 className="text-lg font-bold text-zinc-900">Customer Information</h2>
+            <h2 className="text-base sm:text-lg font-bold text-zinc-900">Customer Information</h2>
             <p className="text-xs text-zinc-500 mt-0.5">
               Your order confirmation and download license will be sent to this email.
             </p>
           </div>
 
-          <form onSubmit={handlePayNow} className="space-y-4">
+          <form onSubmit={handlePayNow} className="space-y-4 w-full">
             <div>
               <label className="block text-xs font-semibold text-zinc-700 mb-1">
                 Full Name *
@@ -295,6 +295,7 @@ export default function CheckoutPage() {
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder="e.g. Alex Morgan"
+                className="w-full text-sm"
               />
             </div>
 
@@ -308,10 +309,11 @@ export default function CheckoutPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
+                className="w-full text-sm"
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 w-full">
               <div>
                 <label className="block text-xs font-semibold text-zinc-700 mb-1">
                   Country / Region *
@@ -319,7 +321,7 @@ export default function CheckoutPage() {
                 <select
                   value={selectedCountry}
                   onChange={(e) => handleCountryChange(e.target.value)}
-                  className="flex h-11 w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-xs text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-950"
+                  className="flex h-11 w-full max-w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-950 truncate"
                 >
                   {COUNTRIES_LIST.map((c) => (
                     <option key={c.code} value={c.code}>
@@ -338,31 +340,32 @@ export default function CheckoutPage() {
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="+1 555-0199"
+                  className="w-full text-sm"
                 />
               </div>
             </div>
 
             {/* Payment Method Details */}
-            <div className="pt-4 border-t border-zinc-100 space-y-3">
+            <div className="pt-3 sm:pt-4 border-t border-zinc-100 space-y-3 w-full">
               <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400">
                 Authorised Payment Processing
               </h3>
 
-              <div className="p-4 rounded-lg border-2 border-zinc-900 bg-zinc-50 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded bg-zinc-900 text-white flex items-center justify-center font-bold text-xs">
+              <div className="p-3.5 sm:p-4 rounded-lg border-2 border-zinc-900 bg-zinc-50 flex items-center justify-between gap-2.5 w-full overflow-hidden">
+                <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
+                  <div className="w-8 h-8 rounded bg-zinc-900 text-white flex items-center justify-center font-bold text-xs shrink-0">
                     RZP
                   </div>
-                  <div>
-                    <span className="text-sm font-bold text-zinc-900 block">
+                  <div className="min-w-0 flex-1">
+                    <span className="text-xs sm:text-sm font-bold text-zinc-900 block truncate">
                       Razorpay Standard Checkout
                     </span>
-                    <span className="text-xs text-zinc-500">
+                    <span className="text-[11px] sm:text-xs text-zinc-500 block truncate">
                       Credit / Debit Cards, UPI, NetBanking, Dynamic QR
                     </span>
                   </div>
                 </div>
-                <Lock className="w-4 h-4 text-emerald-600" />
+                <Lock className="w-4 h-4 text-emerald-600 shrink-0" />
               </div>
             </div>
 
@@ -372,14 +375,14 @@ export default function CheckoutPage() {
               variant="primary"
               size="lg"
               isLoading={isLoading}
-              className="w-full text-sm font-bold shadow-md mt-4"
+              className="w-full min-h-[48px] text-xs sm:text-sm font-bold shadow-md mt-4 touch-manipulation"
             >
               Pay {formatAmount(cartTotal)} & Unlock Downloads
             </Button>
           </form>
 
           {/* Fallback Merchant Payment Option */}
-          <div className="pt-4 border-t border-zinc-100 text-center">
+          <div className="pt-3 sm:pt-4 border-t border-zinc-100 text-center w-full">
             <p className="text-xs text-zinc-500">
               Need manual payment or personalized link?
             </p>
@@ -389,13 +392,13 @@ export default function CheckoutPage() {
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 text-xs font-semibold text-zinc-700 hover:text-zinc-950 hover:underline mt-1"
             >
-              Pay directly via Merchant Profile (meiyarasan) <ExternalLink className="w-3 h-3" />
+              Pay directly via Merchant Profile (meiyarasan) <ExternalLink className="w-3 h-3 shrink-0" />
             </a>
           </div>
         </div>
 
         {/* Order Review Sidecard Component */}
-        <div className="lg:col-span-5">
+        <div className="lg:col-span-5 w-full max-w-full">
           <OrderSummary
             cart={cart}
             cartTotal={cartTotal}
