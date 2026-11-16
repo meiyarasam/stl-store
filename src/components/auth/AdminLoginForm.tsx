@@ -11,8 +11,8 @@ import { ShieldCheck, Lock, Mail, AlertCircle, Eye, EyeOff, ArrowLeft } from "lu
 export function AdminLoginForm() {
   const router = useRouter();
 
-  const [email, setEmail] = useState("admin@stlforge.com");
-  const [password, setPassword] = useState("Admin@STLForge2026!");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -109,12 +109,6 @@ export function AdminLoginForm() {
               )}
             </button>
           </div>
-        </div>
-
-        <div className="p-3 bg-zinc-900/80 rounded-lg border border-zinc-800/80 text-[11px] text-zinc-400 space-y-1">
-          <span className="font-semibold text-zinc-300 block">Default Admin Credentials:</span>
-          <div className="font-mono text-zinc-300">Email: admin@stlforge.com</div>
-          <div className="font-mono text-zinc-300">Password: Admin@STLForge2026!</div>
         </div>
 
         <Button
