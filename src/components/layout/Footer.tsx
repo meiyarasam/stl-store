@@ -10,7 +10,12 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10">
           {/* Brand Info */}
           <div className="lg:col-span-2 space-y-4">
-            <BrandLogo theme="dark" size="md" />
+            <div>
+              <BrandLogo theme="dark" size="md" showTagline={false} />
+              <p className="mt-2.5 text-xs font-bold tracking-[0.2em] text-blue-400 uppercase">
+                BUY. PRINT. RELAX.
+              </p>
+            </div>
             <p className="text-sm text-zinc-400 max-w-sm leading-relaxed">
               The Print Factory is a premier international digital marketplace for precision 3D-printable models, print-in-place mechanisms, collectible busts, and functional designs.
             </p>

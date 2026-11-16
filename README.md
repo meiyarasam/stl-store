@@ -1,6 +1,6 @@
 # The Print Factory – International Digital 3D Printing Marketplace
 
-> **"DESIGN. PRINT. CREATE."**  
+> **"BUY. PRINT. RELAX."**  
 > A production-grade, international e-commerce platform engineered specifically for discovering, purchasing, and securely downloading high-precision 3D-printable STL files.
 
 Inspired by modern digital product storefronts, The Print Factory implements an enterprise-grade full-stack architecture featuring multi-currency native pricing (`INR`, `USD`, `EUR`, `GBP`, `CAD`, `AUD`, `JPY`), Razorpay standard checkout, dynamic UPI QR payments, signed cryptographic file delivery via Supabase Storage, self-serve customer dashboards, and a complete admin management portal.

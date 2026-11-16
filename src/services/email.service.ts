@@ -80,7 +80,7 @@ export function generateOrderConfirmationEmail({
           <tr>
             <td style="text-align: center; padding-bottom: 24px; border-bottom: 2px solid #2563eb;">
               <h1 style="margin: 0; font-size: 24px; color: #0f172a; letter-spacing: -0.5px;">THE PRINT <span style="color: #2563eb;">FACTORY</span></h1>
-              <p style="margin: 4px 0 0 0; color: #64748b; font-size: 13px; letter-spacing: 1px; text-transform: uppercase;">DESIGN. PRINT. CREATE.</p>
+              <p style="margin: 4px 0 0 0; color: #64748b; font-size: 13px; letter-spacing: 1px; text-transform: uppercase;">BUY. PRINT. RELAX.</p>
             </td>
           </tr>
           <tr>

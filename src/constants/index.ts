@@ -3,7 +3,7 @@ export * from "./currencies";
 export const APP_CONFIG = {
   name: "The Print Factory",
   fullName: "THE PRINT FACTORY",
-  tagline: "DESIGN. PRINT. CREATE.",
+  tagline: "BUY. PRINT. RELAX.",
   description: "A premium international marketplace for digital 3D-printable products.",
   supportEmail: "support@theprintfactory.com",
   adminDefaultEmail: "admin@theprintfactory.com",

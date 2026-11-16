@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     template: "%s | The Print Factory",
   },
   description:
-    "DESIGN. PRINT. CREATE. Discover premium 3D printable designs, print-in-place mechanisms, and collectible miniatures. Instant secure digital download.",
+    "BUY. PRINT. RELAX. Discover premium 3D printable designs, print-in-place mechanisms, and collectible miniatures. Instant secure digital download.",
   keywords: [
     "The Print Factory",
     "3D printing STL files",

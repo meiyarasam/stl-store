@@ -54,7 +54,7 @@ export function BrandLogo({
           </span>
           {showTagline && (
             <span
-              className={`hidden sm:block font-semibold tracking-widest uppercase mt-0.5 ${sub} ${
+              className={`block font-semibold tracking-widest uppercase mt-0.5 text-[8px] sm:text-[9px] ${
                 theme === "dark" ? "text-zinc-400" : "text-zinc-500"
               }`}
             >
