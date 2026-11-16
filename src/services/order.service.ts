@@ -125,7 +125,7 @@ export async function createPendingOrder(params: CreateOrderParams): Promise<{
           orderStatus: dbOrder.orderStatus as OrderStatusType,
           razorpayOrderId: dbOrder.razorpayOrderId,
           createdAt: dbOrder.createdAt.toISOString(),
-          items: dbOrder.items.map((i) => ({
+          items: dbOrder.items.map((i: any) => ({
             id: i.id,
             productId: i.productId,
             productTitle: i.productTitle,
@@ -388,7 +388,7 @@ export async function getOrderById(id: string): Promise<OrderDTO | null> {
           paymentMethod: o.paymentMethod,
           paidAt: o.paidAt?.toISOString() || null,
           createdAt: o.createdAt.toISOString(),
-          items: o.items.map((i) => ({
+          items: o.items.map((i: any) => ({
             id: i.id,
             productId: i.productId,
             productTitle: i.productTitle,
@@ -430,7 +430,7 @@ export async function getUserOrders(userId: string): Promise<OrderDTO[]> {
       });
 
       if (orders.length > 0) {
-        return orders.map((o) => ({
+        return orders.map((o: any) => ({
           id: o.id,
           orderNumber: o.orderNumber,
           userId: o.userId,
@@ -448,7 +448,7 @@ export async function getUserOrders(userId: string): Promise<OrderDTO[]> {
           razorpayPaymentId: o.razorpayPaymentId,
           paidAt: o.paidAt?.toISOString() || null,
           createdAt: o.createdAt.toISOString(),
-          items: o.items.map((i) => ({
+          items: o.items.map((i: any) => ({
             id: i.id,
             productId: i.productId,
             productTitle: i.productTitle,

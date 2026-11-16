@@ -10,15 +10,34 @@ declare global {
   var lastDbProbe: number | undefined;
 }
 
-export const prisma =
-  global.prisma ||
-  new PrismaClient({
-    log: process.env.NODE_ENV === "development" ? ["warn", "error"] : ["error"],
-  });
-
-if (process.env.NODE_ENV !== "production") {
-  global.prisma = prisma;
+function getPrismaInstance(): PrismaClient {
+  if (!global.prisma) {
+    try {
+      global.prisma = new PrismaClient({
+        log: process.env.NODE_ENV === "development" ? ["warn", "error"] : ["error"],
+      });
+    } catch (e) {
+      console.warn("Prisma client lazy instantiation notice:", e);
+      return new Proxy({} as PrismaClient, {
+        get: () => {
+          throw new Error("Prisma client is not initialized.");
+        },
+      });
+    }
+  }
+  return global.prisma;
 }
+
+export const prisma = new Proxy({} as PrismaClient, {
+  get(_, prop) {
+    const client = getPrismaInstance();
+    const val = (client as any)[prop];
+    if (typeof val === "function") {
+      return val.bind(client);
+    }
+    return val;
+  },
+});
 
 /**
  * Fast connectivity probe to verify if PostgreSQL host/port is reachable.

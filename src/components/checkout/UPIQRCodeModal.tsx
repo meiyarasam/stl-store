@@ -74,6 +74,7 @@ export function UPIQRCodeModal({
         <div className="flex justify-center my-4">
           {qrCodeDataUrl ? (
             <div className="p-3 bg-white border-2 border-zinc-900 rounded-xl shadow-inner">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={qrCodeDataUrl}
                 alt="Dynamic UPI QR Code"

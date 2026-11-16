@@ -93,7 +93,7 @@ export async function getAllProducts({
       });
 
       if (dbProducts && dbProducts.length > 0) {
-        return dbProducts.map((p) => ({
+        return dbProducts.map((p: any) => ({
           id: p.id,
           title: p.title,
           slug: p.slug,
@@ -114,21 +114,21 @@ export async function getAllProducts({
           isFeatured: p.isFeatured,
           viewCount: p.viewCount,
           downloadCount: p.downloadCount,
-          prices: p.prices.map((pr) => ({
+          prices: p.prices.map((pr: any) => ({
             id: pr.id,
             currency: pr.currency as CurrencyCode,
             amount: Number(pr.amount),
             compareAtAmount: pr.compareAtAmount ? Number(pr.compareAtAmount) : null,
             isEnabled: pr.isEnabled,
           })),
-          images: p.images.map((img) => ({
+          images: p.images.map((img: any) => ({
             id: img.id,
             url: img.url,
             altText: img.altText,
             isPrimary: img.isPrimary,
             sortOrder: img.sortOrder,
           })),
-          files: p.files.map((f) => ({
+          files: p.files.map((f: any) => ({
             id: f.id,
             fileName: f.fileName,
             fileType: f.fileType,
@@ -208,21 +208,21 @@ export async function getProductBySlug(slug: string): Promise<ProductDTO | null>
           isFeatured: p.isFeatured,
           viewCount: p.viewCount,
           downloadCount: p.downloadCount,
-          prices: p.prices.map((pr) => ({
+          prices: p.prices.map((pr: any) => ({
             id: pr.id,
             currency: pr.currency as CurrencyCode,
             amount: Number(pr.amount),
             compareAtAmount: pr.compareAtAmount ? Number(pr.compareAtAmount) : null,
             isEnabled: pr.isEnabled,
           })),
-          images: p.images.map((img) => ({
+          images: p.images.map((img: any) => ({
             id: img.id,
             url: img.url,
             altText: img.altText,
             isPrimary: img.isPrimary,
             sortOrder: img.sortOrder,
           })),
-          files: p.files.map((f) => ({
+          files: p.files.map((f: any) => ({
             id: f.id,
             fileName: f.fileName,
             fileType: f.fileType,
@@ -275,21 +275,21 @@ export async function getProductById(id: string): Promise<ProductDTO | null> {
           isFeatured: p.isFeatured,
           viewCount: p.viewCount,
           downloadCount: p.downloadCount,
-          prices: p.prices.map((pr) => ({
+          prices: p.prices.map((pr: any) => ({
             id: pr.id,
             currency: pr.currency as CurrencyCode,
             amount: Number(pr.amount),
             compareAtAmount: pr.compareAtAmount ? Number(pr.compareAtAmount) : null,
             isEnabled: pr.isEnabled,
           })),
-          images: p.images.map((img) => ({
+          images: p.images.map((img: any) => ({
             id: img.id,
             url: img.url,
             altText: img.altText,
             isPrimary: img.isPrimary,
             sortOrder: img.sortOrder,
           })),
-          files: p.files.map((f) => ({
+          files: p.files.map((f: any) => ({
             id: f.id,
             fileName: f.fileName,
             fileType: f.fileType,
@@ -318,7 +318,7 @@ export async function getAllCategories(): Promise<SampleCategory[]> {
         orderBy: { sortOrder: "asc" },
       });
       if (dbCats && dbCats.length > 0) {
-        return dbCats.map((c) => ({
+        return dbCats.map((c: any) => ({
           id: c.id,
           name: c.name,
           slug: c.slug,

@@ -43,7 +43,7 @@ export async function GET() {
           totalOrders = orderCount;
           totalCustomers = customerCount || 12;
           totalProducts = productCount || SAMPLE_PRODUCTS.length;
-          totalRevenue = paidOrders.reduce((acc, curr) => acc + Number(curr.total), 0);
+          totalRevenue = paidOrders.reduce((acc: number, curr: any) => acc + Number(curr.total), 0);
         }
       } catch (dbErr) {
         console.warn("Analytics database calculation fallback:", dbErr);

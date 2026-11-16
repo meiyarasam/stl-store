@@ -45,7 +45,7 @@ export async function getUserDownloads(userId: string): Promise<DownloadItemDTO[
       });
 
       if (downloads.length > 0) {
-        return downloads.map((d) => ({
+        return downloads.map((d: any) => ({
           id: d.id,
           orderId: d.orderId,
           orderNumber: d.order.orderNumber,
@@ -104,7 +104,7 @@ export async function getOrderDownloads(orderId: string): Promise<DownloadItemDT
       });
 
       if (downloads.length > 0) {
-        return downloads.map((d) => ({
+        return downloads.map((d: any) => ({
           id: d.id,
           orderId: d.orderId,
           orderNumber: d.order.orderNumber,

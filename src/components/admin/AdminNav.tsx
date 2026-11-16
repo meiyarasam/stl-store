@@ -8,6 +8,7 @@ import {
   Box,
   FolderTree,
   ShoppingBag,
+  CreditCard,
   Users,
   Settings,
   ArrowLeft,
@@ -21,6 +22,7 @@ export function AdminNav() {
     { label: "Products", href: "/admin/products", icon: Box },
     { label: "Categories", href: "/admin/categories", icon: FolderTree },
     { label: "Orders", href: "/admin/orders", icon: ShoppingBag },
+    { label: "Payments", href: "/admin/payments", icon: CreditCard },
     { label: "Customers", href: "/admin/customers", icon: Users },
     { label: "Settings", href: "/admin/settings", icon: Settings },
   ];
