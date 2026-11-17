@@ -168,7 +168,7 @@ export async function PUT(
 
     const existingProduct = await prisma.product.findUnique({
       where: { id },
-      include: { prices: true, images: true, files: true },
+      include: { category: true, prices: true, images: true, files: true },
     });
 
     if (!existingProduct || existingProduct.isDeleted) {
@@ -327,10 +327,21 @@ export async function PUT(
     try {
       revalidatePath("/");
       revalidatePath("/products");
+      revalidatePath("/categories");
       revalidatePath("/admin/products");
+      if (updated.category?.slug) {
+        revalidatePath(`/categories/${updated.category.slug}`);
+      }
+      if (existingProduct.category?.slug && existingProduct.category.slug !== updated.category?.slug) {
+        revalidatePath(`/categories/${existingProduct.category.slug}`);
+      }
       if (updated.slug) {
         revalidatePath(`/products/${updated.slug}`);
       }
+      if (existingProduct.slug && existingProduct.slug !== updated.slug) {
+        revalidatePath(`/products/${existingProduct.slug}`);
+      }
+      revalidatePath("/api/products");
     } catch (revalErr) {
       console.warn("Revalidation notice:", revalErr);
     }
@@ -461,6 +472,7 @@ export async function DELETE(
         revalidatePath(`/categories/${product.category.slug}`);
       }
       revalidatePath("/admin/products");
+      revalidatePath("/api/products");
     } catch (revalErr) {
       console.warn("Revalidation notice:", revalErr);
     }

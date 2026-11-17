@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getAllProducts } from "@/lib/database/products";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export async function GET(req: Request) {
   try {
@@ -18,11 +19,24 @@ export async function GET(req: Request) {
       sort,
     });
 
-    return NextResponse.json({ products });
+    return NextResponse.json(
+      { success: true, count: products.length, products },
+      {
+        headers: {
+          "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+          Pragma: "no-cache",
+          Expires: "0",
+        },
+      }
+    );
   } catch (error: any) {
     console.error("GET /api/products error:", error);
     return NextResponse.json(
-      { error: "Failed to fetch products" },
+      {
+        success: false,
+        error: "Failed to fetch products from database",
+        message: error?.message || "Unknown database error",
+      },
       { status: 500 }
     );
   }

@@ -19,15 +19,26 @@ interface ProductsPageProps {
 export default async function ProductsPage({ searchParams }: ProductsPageProps) {
   const { category, search, sort = "newest", featured } = searchParams;
 
-  const [products, categories] = await Promise.all([
-    getAllProducts({
-      categorySlug: category,
-      search,
-      featuredOnly: featured === "true",
-      sort,
-    }),
-    getAllCategories(),
-  ]);
+  let products: any[] = [];
+  let categories: any[] = [];
+  let loadError: string | null = null;
+
+  try {
+    const results = await Promise.all([
+      getAllProducts({
+        categorySlug: category,
+        search,
+        featuredOnly: featured === "true",
+        sort,
+      }),
+      getAllCategories(),
+    ]);
+    products = results[0];
+    categories = results[1];
+  } catch (err: any) {
+    console.error("ProductsPage data fetch error:", err);
+    loadError = err?.message || "Failed to load products from database";
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
@@ -71,7 +82,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
       </div>
 
       {/* Product Grid */}
-      <ProductGrid products={products} />
+      <ProductGrid products={products} error={loadError} />
     </div>
   );
 }

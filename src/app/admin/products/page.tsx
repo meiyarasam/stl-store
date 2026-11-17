@@ -16,7 +16,12 @@ export default async function AdminProductsPage() {
     redirect("/login?callbackUrl=/admin/products");
   }
 
-  const products = await getAllProducts({ includeUnpublished: true });
+  let products: any[] = [];
+  try {
+    products = await getAllProducts({ includeUnpublished: true });
+  } catch (err: any) {
+    console.error("AdminProductsPage data fetch error:", err);
+  }
 
   return (
     <div className="min-h-screen bg-zinc-50/50">

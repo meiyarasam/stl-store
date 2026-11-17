@@ -323,7 +323,15 @@ export async function POST(req: Request) {
     try {
       revalidatePath("/");
       revalidatePath("/products");
+      revalidatePath("/categories");
       revalidatePath("/admin/products");
+      if (product.category?.slug) {
+        revalidatePath(`/categories/${product.category.slug}`);
+      }
+      if (product.slug) {
+        revalidatePath(`/products/${product.slug}`);
+      }
+      revalidatePath("/api/products");
     } catch (revalErr) {
       console.warn("Revalidation notice:", revalErr);
     }

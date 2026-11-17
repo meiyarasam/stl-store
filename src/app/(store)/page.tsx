@@ -18,10 +18,21 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function HomePage() {
-  const [allProducts, categories] = await Promise.all([
-    getAllProducts(),
-    getAllCategories(),
-  ]);
+  let allProducts: any[] = [];
+  let categories: any[] = [];
+  let loadError: string | null = null;
+
+  try {
+    const results = await Promise.all([
+      getAllProducts(),
+      getAllCategories(),
+    ]);
+    allProducts = results[0];
+    categories = results[1];
+  } catch (err: any) {
+    console.error("HomePage data fetch error:", err);
+    loadError = err?.message || "Failed to load products from database";
+  }
 
   // Featured 3D Models: prioritize explicitly featured designs, and fill with latest additions
   const explicitlyFeatured = allProducts.filter((p) => p.isFeatured);
@@ -136,7 +147,7 @@ export default async function HomePage() {
           </Link>
         </div>
 
-        <ProductGrid products={featuredProducts} />
+        <ProductGrid products={featuredProducts} error={loadError} />
       </section>
 
       {/* Popular Categories */}
@@ -209,7 +220,7 @@ export default async function HomePage() {
           </Link>
         </div>
 
-        <ProductGrid products={bestSellers} />
+        <ProductGrid products={bestSellers} error={loadError} />
       </section>
 
       {/* Why Choose The Print Factory */}

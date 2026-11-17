@@ -1,5 +1,40 @@
-import prisma, { isDatabaseReachable } from "@/lib/database/prisma";
+import prisma from "@/lib/database/prisma";
 import { CurrencyCode, ProductDTO, CategoryDTO } from "@/types";
+
+/**
+ * Intelligent retry helper for transient database connections / cross-region pooler latency.
+ */
+async function withDbRetry<T>(operation: () => Promise<T>, maxRetries = 2): Promise<T> {
+  let lastError: any;
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await operation();
+    } catch (err: any) {
+      lastError = err;
+      const msg = (err?.message || "").toLowerCase();
+      const isTransient =
+        msg.includes("can't reach database") ||
+        msg.includes("timed out") ||
+        msg.includes("timeout") ||
+        msg.includes("connection closed") ||
+        msg.includes("connection pool") ||
+        msg.includes("broken pipe") ||
+        msg.includes("socket");
+
+      if (attempt < maxRetries && isTransient) {
+        const delay = 300 * (attempt + 1);
+        console.warn(
+          `Database query transient error (attempt ${attempt + 1}/${maxRetries + 1}), retrying in ${delay}ms...`,
+          err?.message
+        );
+        await new Promise((r) => setTimeout(r, delay));
+        continue;
+      }
+      break;
+    }
+  }
+  throw lastError;
+}
 
 export function mapDbProductToDTO(p: any): ProductDTO {
   return {
@@ -72,14 +107,7 @@ export async function getAllProducts({
   includeUnpublished?: boolean;
   sort?: "newest" | "price-asc" | "price-desc" | "popular";
 } = {}): Promise<ProductDTO[]> {
-  const dbOnline = await isDatabaseReachable();
-
-  if (!dbOnline) {
-    console.warn("Database is unreachable in getAllProducts");
-    return [];
-  }
-
-  try {
+  return withDbRetry(async () => {
     const where: any = {
       isDeleted: false,
     };
@@ -141,24 +169,14 @@ export async function getAllProducts({
     }
 
     return results;
-  } catch (err) {
-    console.error("Database query failed in getAllProducts:", err);
-    return [];
-  }
+  });
 }
 
 export async function getProductBySlug(
   slug: string,
   includeUnpublished = false
 ): Promise<ProductDTO | null> {
-  const dbOnline = await isDatabaseReachable();
-
-  if (!dbOnline) {
-    console.warn("Database is unreachable in getProductBySlug");
-    return null;
-  }
-
-  try {
+  return withDbRetry(async () => {
     const where: any = {
       slug,
       isDeleted: false,
@@ -186,21 +204,11 @@ export async function getProductBySlug(
     }
 
     return mapDbProductToDTO(p);
-  } catch (err) {
-    console.error(`Database lookup by slug failed for "${slug}":`, err);
-    return null;
-  }
+  });
 }
 
 export async function getProductById(id: string): Promise<ProductDTO | null> {
-  const dbOnline = await isDatabaseReachable();
-
-  if (!dbOnline) {
-    console.warn("Database is unreachable in getProductById");
-    return null;
-  }
-
-  try {
+  return withDbRetry(async () => {
     const p = await prisma.product.findUnique({
       where: { id },
       include: {
@@ -216,10 +224,7 @@ export async function getProductById(id: string): Promise<ProductDTO | null> {
     }
 
     return mapDbProductToDTO(p);
-  } catch (err) {
-    console.error(`Database lookup by ID failed for "${id}":`, err);
-    return null;
-  }
+  });
 }
 
 export async function getAllCategories({
@@ -227,14 +232,7 @@ export async function getAllCategories({
 }: {
   includeInactive?: boolean;
 } = {}): Promise<CategoryDTO[]> {
-  const dbOnline = await isDatabaseReachable();
-
-  if (!dbOnline) {
-    console.warn("Database is unreachable in getAllCategories");
-    return [];
-  }
-
-  try {
+  return withDbRetry(async () => {
     const where: any = {};
     if (!includeInactive) {
       where.isActive = true;
@@ -269,24 +267,14 @@ export async function getAllCategories({
       sortOrder: c.sortOrder || 0,
       productCount: c._count?.products || 0,
     }));
-  } catch (err) {
-    console.error("Categories database fetch failed in getAllCategories:", err);
-    return [];
-  }
+  });
 }
 
 export async function getCategoryBySlug(
   slug: string,
   includeInactive = false
 ): Promise<CategoryDTO | null> {
-  const dbOnline = await isDatabaseReachable();
-
-  if (!dbOnline) {
-    console.warn("Database is unreachable in getCategoryBySlug");
-    return null;
-  }
-
-  try {
+  return withDbRetry(async () => {
     const where: any = { slug };
     if (!includeInactive) {
       where.isActive = true;
@@ -324,8 +312,5 @@ export async function getCategoryBySlug(
       sortOrder: cat.sortOrder || 0,
       productCount: cat._count?.products || 0,
     };
-  } catch (err) {
-    console.error(`Category lookup failed for slug "${slug}":`, err);
-    return null;
-  }
+  });
 }
