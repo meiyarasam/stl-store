@@ -103,7 +103,7 @@ function loadUsers(): Map<string, StoredUser> {
   }
 
   // Pre-seed default Admin if not exists
-  const adminEmail = (process.env.ADMIN_DEFAULT_EMAIL || "admin@theprintfactory.com").toLowerCase().trim();
+  const adminEmail = (process.env.ADMIN_DEFAULT_EMAIL || "theprintfactory2026@gmail.com").toLowerCase().trim();
   if (!usersCache.has(adminEmail)) {
     const adminPassword = process.env.ADMIN_DEFAULT_PASSWORD || "Admin@ThePrintFactory2026!";
     const adminUser: StoredUser = {
@@ -111,9 +111,9 @@ function loadUsers(): Map<string, StoredUser> {
       name: "The Print Factory Administrator",
       email: adminEmail,
       passwordHash: bcrypt.hashSync(adminPassword, 10),
-      country: "US",
-      phoneCountryCode: "+1",
-      phone: "5551234567",
+      country: "IN",
+      phoneCountryCode: "+91",
+      phone: "",
       role: "ADMIN",
       createdAt: new Date().toISOString(),
     };

@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Mail, MessageSquare, CheckCircle2, ShieldCheck, MapPin } from "lucide-react";
+import { Mail, MessageSquare, CheckCircle2, ShieldCheck } from "lucide-react";
 
 export default function ContactPage() {
   const [name, setName] = useState("");
@@ -46,9 +46,9 @@ export default function ContactPage() {
               <div className="flex items-start gap-3">
                 <Mail className="w-4 h-4 text-zinc-700 flex-shrink-0 mt-0.5" />
                 <div>
-                  <span className="font-semibold text-zinc-900 block">Customer Support</span>
-                  <a href="mailto:support@theprintfactory.com" className="hover:underline">
-                    support@theprintfactory.com
+                  <span className="font-semibold text-zinc-900 block">Customer Support & Inquiries</span>
+                  <a href="mailto:theprintfactory2026@gmail.com" className="font-mono text-zinc-900 hover:underline">
+                    theprintfactory2026@gmail.com
                   </a>
                 </div>
               </div>
@@ -56,9 +56,9 @@ export default function ContactPage() {
               <div className="flex items-start gap-3">
                 <ShieldCheck className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
                 <div>
-                  <span className="font-semibold text-zinc-900 block">Licencing & Verification</span>
-                  <a href="mailto:licensing@theprintfactory.com" className="hover:underline">
-                    licensing@theprintfactory.com
+                  <span className="font-semibold text-zinc-900 block">Commercial Licencing & Verification</span>
+                  <a href="mailto:theprintfactory2026@gmail.com" className="font-mono text-zinc-900 hover:underline">
+                    theprintfactory2026@gmail.com
                   </a>
                 </div>
               </div>

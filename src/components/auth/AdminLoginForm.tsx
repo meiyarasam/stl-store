@@ -75,7 +75,7 @@ export function AdminLoginForm() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="admin@theprintfactory.com"
+              placeholder="theprintfactory2026@gmail.com"
               className="bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-500 pl-9 focus:border-amber-400 focus:ring-amber-400"
             />
             <Mail className="w-4 h-4 text-zinc-500 absolute left-3 top-3.5" />

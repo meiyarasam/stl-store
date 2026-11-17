@@ -339,7 +339,7 @@ export default function CheckoutPage() {
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  placeholder="+1 555-0199"
+                  placeholder="Mobile number for order updates"
                   className="w-full text-sm"
                 />
               </div>

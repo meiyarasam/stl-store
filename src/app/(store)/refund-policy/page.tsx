@@ -44,7 +44,7 @@ export default function RefundPolicyPage() {
 
         <h2 className="text-lg font-bold text-zinc-950">3. How to Request a Refund</h2>
         <p>
-          To initiate a refund request, please email <a href="mailto:support@theprintfactory.com" className="font-semibold text-zinc-900 underline">support@theprintfactory.com</a> within 7 days of purchase. Include your Order Number (e.g., #TPF-XXXXXX), your Razorpay payment transaction reference, and screenshots of any slicing errors encountered. Approved refunds are credited back to your original payment method (bank account, card, or UPI) within 5–7 business days.
+          To initiate a refund request, please email <a href="mailto:theprintfactory2026@gmail.com" className="font-semibold text-zinc-900 underline font-mono">theprintfactory2026@gmail.com</a> within 7 days of purchase. Include your Order Number (e.g., #TPF-XXXXXX), your Razorpay payment transaction reference, and screenshots of any slicing errors encountered. Approved refunds are credited back to your original payment method (bank account, card, or UPI) within 5–7 business days.
         </p>
       </div>
     </div>

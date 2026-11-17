@@ -9,9 +9,9 @@ export const BRAND = {
   logoUrl: "/images/logo.png",
   logoSquare: "/images/logo.png",
   url: process.env.NEXT_PUBLIC_APP_URL || "https://theprintfactory.com",
-  supportEmail: "support@theprintfactory.com",
-  adminEmail: "admin@theprintfactory.com",
-  ordersEmail: "orders@theprintfactory.com",
+  supportEmail: "theprintfactory2026@gmail.com",
+  adminEmail: "theprintfactory2026@gmail.com",
+  ordersEmail: "theprintfactory2026@gmail.com",
   copyright: `© ${new Date().getFullYear()} The Print Factory. All rights reserved. Precision 3D Digital Assets.`,
 } as const;
 

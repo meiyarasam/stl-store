@@ -244,7 +244,7 @@ export function RegisterForm() {
               required
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              placeholder="555-0192"
+              placeholder="e.g. 9876543210"
             />
           </div>
         </div>

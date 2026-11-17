@@ -30,6 +30,17 @@ export function Footer() {
                 <span>Instant Digital Delivery</span>
               </div>
             </div>
+
+            <div className="pt-1 flex items-center gap-2 text-xs text-zinc-400">
+              <Mail className="w-4 h-4 text-zinc-400 shrink-0" />
+              <span>Direct Support:</span>
+              <a
+                href="mailto:theprintfactory2026@gmail.com"
+                className="font-mono text-zinc-300 hover:text-white transition-colors"
+              >
+                theprintfactory2026@gmail.com
+              </a>
+            </div>
           </div>
 
           {/* Quick Links */}
@@ -96,6 +107,15 @@ export function Footer() {
                 <Link href="/contact" className="hover:text-white transition-colors">
                   Contact Support
                 </Link>
+              </li>
+              <li>
+                <a
+                  href="mailto:theprintfactory2026@gmail.com"
+                  className="hover:text-white transition-colors inline-flex items-center gap-1.5 text-blue-400 font-mono text-xs"
+                >
+                  <Mail className="w-3.5 h-3.5 shrink-0" />
+                  theprintfactory2026@gmail.com
+                </a>
               </li>
               <li>
                 <Link href="/faq" className="hover:text-white transition-colors">

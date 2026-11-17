@@ -18,7 +18,7 @@ export default function FAQPage() {
     },
     {
       q: "Can I sell physical 3D prints of these designs?",
-      a: "Standard purchases come with our Standard Personal Use Licence (non-commercial, physical or digital resale prohibited). If you are interested in commercial mass-production or selling printed versions, please contact our licensing team at licensing@theprintfactory.com.",
+      a: "Standard purchases come with our Standard Personal Use Licence (non-commercial, physical or digital resale prohibited). If you are interested in commercial mass-production or selling printed versions, please contact our licensing team at theprintfactory2026@gmail.com.",
     },
     {
       q: "What payment methods are supported?",

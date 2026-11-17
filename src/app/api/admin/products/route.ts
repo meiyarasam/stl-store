@@ -51,12 +51,16 @@ export async function POST(req: Request) {
     const userRole = (session?.user as any)?.role?.toUpperCase();
     const userEmail = session?.user?.email?.toLowerCase().trim();
     const adminEmail = (
-      process.env.ADMIN_DEFAULT_EMAIL || "admin@theprintfactory.com"
+      process.env.ADMIN_DEFAULT_EMAIL || "theprintfactory2026@gmail.com"
     )
       .toLowerCase()
       .trim();
 
-    let isAuthorized = userRole === "ADMIN" || userEmail === adminEmail;
+    let isAuthorized =
+      userRole === "ADMIN" ||
+      userEmail === adminEmail ||
+      userEmail === "theprintfactory2026@gmail.com" ||
+      userEmail === "admin@theprintfactory.com";
     if (!isAuthorized && userEmail) {
       const dbUser = await prisma.user
         .findUnique({ where: { email: userEmail } })

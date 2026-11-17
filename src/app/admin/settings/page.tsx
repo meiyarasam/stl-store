@@ -155,8 +155,8 @@ export default async function AdminSettingsPage() {
                   </>
                 )}
               </div>
-              <span className="text-[11px] text-zinc-400 block pt-1">
-                Sender: orders@theprintfactory.com
+              <span className="text-[11px] text-zinc-400 block pt-1 font-mono">
+                Sender: theprintfactory2026@gmail.com
               </span>
             </div>
           </div>

@@ -11,8 +11,12 @@ export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions);
     const userRole = (session?.user as any)?.role?.toUpperCase();
     const userEmail = session?.user?.email?.toLowerCase().trim();
-    const adminEmail = (process.env.ADMIN_DEFAULT_EMAIL || "admin@theprintfactory.com").toLowerCase().trim();
-    let isAuthorized = userRole === "ADMIN" || userEmail === adminEmail;
+    const adminEmail = (process.env.ADMIN_DEFAULT_EMAIL || "theprintfactory2026@gmail.com").toLowerCase().trim();
+    let isAuthorized =
+      userRole === "ADMIN" ||
+      userEmail === adminEmail ||
+      userEmail === "theprintfactory2026@gmail.com" ||
+      userEmail === "admin@theprintfactory.com";
 
     if (!isAuthorized && userEmail) {
       const dbUser = await prisma.user.findUnique({ where: { email: userEmail } }).catch(() => null);

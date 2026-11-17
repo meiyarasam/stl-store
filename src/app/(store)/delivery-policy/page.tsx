@@ -39,7 +39,7 @@ export default function DigitalDeliveryPolicyPage() {
 
         <h2 className="text-lg font-bold text-zinc-950">4. Delivery Troubleshooting</h2>
         <p>
-          If your bank account was debited but your download has not unlocked within 10 minutes due to intermittent gateway delays, please email our support team at <a href="mailto:support@theprintfactory.com" className="font-semibold text-zinc-900 underline">support@theprintfactory.com</a> with your Razorpay transaction ID for instant manual clearance.
+          If your bank account was debited but your download has not unlocked within 10 minutes due to intermittent gateway delays, please email our support team at <a href="mailto:theprintfactory2026@gmail.com" className="font-semibold text-zinc-900 underline font-mono">theprintfactory2026@gmail.com</a> with your Razorpay transaction ID for instant manual clearance.
         </p>
       </div>
     </div>

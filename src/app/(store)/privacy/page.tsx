@@ -42,7 +42,7 @@ export default function PrivacyPolicyPage() {
 
         <h2 className="text-lg font-bold text-zinc-950">4. Contact Information</h2>
         <p>
-          If you have questions regarding your data or wish to request data deletion under applicable privacy laws, please contact <a href="mailto:privacy@theprintfactory.com" className="font-semibold text-zinc-900 underline">privacy@theprintfactory.com</a>.
+          If you have questions regarding your data or wish to request data deletion under applicable privacy laws, please contact <a href="mailto:theprintfactory2026@gmail.com" className="font-semibold text-zinc-900 underline font-mono">theprintfactory2026@gmail.com</a>.
         </p>
       </div>
     </div>

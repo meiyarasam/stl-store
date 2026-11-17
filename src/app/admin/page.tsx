@@ -13,11 +13,15 @@ export default async function AdminDashboardPage() {
   const session = await getServerSession(authOptions);
   const userRole = (session?.user as any)?.role?.toUpperCase();
   const userEmail = session?.user?.email?.toLowerCase().trim();
-  const adminEmail = (process.env.ADMIN_DEFAULT_EMAIL || "admin@theprintfactory.com")
+  const adminEmail = (process.env.ADMIN_DEFAULT_EMAIL || "theprintfactory2026@gmail.com")
     .toLowerCase()
     .trim();
 
-  const isAuthorized = userRole === "ADMIN" || userEmail === adminEmail;
+  const isAuthorized =
+    userRole === "ADMIN" ||
+    userEmail === adminEmail ||
+    userEmail === "theprintfactory2026@gmail.com" ||
+    userEmail === "admin@theprintfactory.com";
 
   if (!isAuthorized && process.env.NODE_ENV === "production") {
     redirect("/login?callbackUrl=/admin");

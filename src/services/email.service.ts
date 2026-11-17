@@ -1,7 +1,7 @@
 import { Resend } from "resend";
 
 const resendApiKey = process.env.RESEND_API_KEY || "";
-const resendFromEmail = process.env.RESEND_FROM_EMAIL || "The Print Factory <orders@theprintfactory.com>";
+const resendFromEmail = process.env.RESEND_FROM_EMAIL || "The Print Factory <theprintfactory2026@gmail.com>";
 
 export const isResendConfigured = Boolean(
   resendApiKey && !resendApiKey.includes("placeholder")
@@ -126,7 +126,7 @@ export function generateOrderConfirmationEmail({
           <tr>
             <td style="border-top: 1px solid #e2e8f0; padding-top: 24px; color: #94a3b8; font-size: 12px; text-align: center; line-height: 1.5;">
               The Print Factory – International Digital 3D Printing Marketplace.<br>
-              Need help? Contact support@theprintfactory.com
+              Need help? Contact theprintfactory2026@gmail.com
             </td>
           </tr>
         </table>

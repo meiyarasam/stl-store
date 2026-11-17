@@ -50,7 +50,7 @@ export default function LicencePage() {
 
         <h2 className="text-lg font-bold text-zinc-950 pt-4">Commercial Inquiries</h2>
         <p>
-          If you run an Etsy shop, Kickstarter campaign, or print farm and wish to sell physical 3D prints produced from our designs, please reach out to <a href="mailto:licensing@theprintfactory.com" className="font-semibold text-zinc-900 underline">licensing@theprintfactory.com</a> to obtain an official Commercial Merchant Licence.
+          If you run an Etsy shop, Kickstarter campaign, or print farm and wish to sell physical 3D prints produced from our designs, please reach out to <a href="mailto:theprintfactory2026@gmail.com" className="font-semibold text-zinc-900 underline font-mono">theprintfactory2026@gmail.com</a> to obtain an official Commercial Merchant Licence.
         </p>
       </div>
     </div>
