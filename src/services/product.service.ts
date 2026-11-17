@@ -53,18 +53,23 @@ export async function getAllProducts({
   categorySlug,
   search,
   featuredOnly,
+  includeUnpublished = false,
   sort = "newest",
 }: {
   categorySlug?: string;
   search?: string;
   featuredOnly?: boolean;
+  includeUnpublished?: boolean;
   sort?: "newest" | "price-asc" | "price-desc" | "popular";
 } = {}): Promise<ProductDTO[]> {
   const dbOnline = await isDatabaseReachable();
 
   if (dbOnline) {
     try {
-      const where: any = { isPublished: true };
+      const where: any = {};
+      if (!includeUnpublished) {
+        where.isPublished = true;
+      }
       if (categorySlug) {
         where.category = { slug: categorySlug };
       }
