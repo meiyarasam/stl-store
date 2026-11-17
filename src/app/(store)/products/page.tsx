@@ -3,7 +3,6 @@ import Link from "next/link";
 import { getAllProducts } from "@/services/product.service";
 import { getAllCategories } from "@/services/product.service";
 import { ProductGrid } from "@/components/products/ProductGrid";
-import { ProductFilters } from "@/components/products/ProductFilters";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -60,14 +59,6 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
           High-precision digital STL and ZIP packages ready for download and immediate printing.
         </p>
       </div>
-
-      {/* Filters & Sorting Component */}
-      <ProductFilters
-        categories={categories}
-        currentCategory={category}
-        currentSearch={search}
-        currentSort={sort}
-      />
 
       {/* Results Count */}
       <div className="flex items-center justify-between text-xs text-zinc-500 px-1">
