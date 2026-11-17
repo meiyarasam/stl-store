@@ -1,168 +1,113 @@
 "use client";
 
 import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Mail, MessageSquare, CheckCircle2, ShieldCheck } from "lucide-react";
+import Link from "next/link";
+import { Mail, Clock, ShieldCheck, Check, Copy, ArrowRight, HelpCircle } from "lucide-react";
 
 export default function ContactPage() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [subject, setSubject] = useState("");
-  const [message, setMessage] = useState("");
-  const [submitted, setSubmitted] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const supportEmail = "theprintfactory2026@gmail.com";
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      setSubmitted(true);
-    }, 700);
+  const handleCopy = () => {
+    navigator.clipboard.writeText(supportEmail);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-12">
-      <div className="text-center max-w-xl mx-auto space-y-2">
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 space-y-10">
+      {/* Page Header */}
+      <div className="text-center max-w-xl mx-auto space-y-3">
         <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
-          Support & Inquiries
+          Direct Support & Inquiries
         </span>
-        <h1 className="text-3xl sm:text-4xl font-black text-zinc-950 tracking-tight font-display">
+        <h1 className="text-3xl sm:text-5xl font-black text-zinc-950 tracking-tight font-display">
           Contact Our Team
         </h1>
-        <p className="text-xs sm:text-sm text-zinc-500">
-          Have questions about slicing a model, order reconciliation, or commercial licensing inquiries? We&apos;re here to help.
+        <p className="text-xs sm:text-sm text-zinc-600 leading-relaxed">
+          Have questions about slicing parameters, download access, or commercial licensing? Reach out to our dedicated support team directly via email.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-10">
-        {/* Info Column */}
-        <div className="md:col-span-5 space-y-6">
-          <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-6 space-y-4">
-            <h3 className="font-bold text-zinc-950 text-sm">Direct Contact Channels</h3>
+      {/* Main Support Card */}
+      <div className="bg-white border border-zinc-200 rounded-2xl p-6 sm:p-10 shadow-sm space-y-8">
+        <div className="text-center space-y-4">
+          <div className="w-14 h-14 rounded-2xl bg-zinc-100 border border-zinc-200 text-zinc-900 flex items-center justify-center mx-auto shadow-sm">
+            <Mail className="w-7 h-7 text-zinc-950" />
+          </div>
+          <div>
+            <h2 className="text-lg font-bold text-zinc-950">Official Email Support</h2>
+            <p className="text-xs text-zinc-500 mt-1">
+              Click below to write to us or copy the address to your clipboard.
+            </p>
+          </div>
 
-            <div className="space-y-3 text-xs text-zinc-600">
-              <div className="flex items-start gap-3">
-                <Mail className="w-4 h-4 text-zinc-700 flex-shrink-0 mt-0.5" />
-                <div>
-                  <span className="font-semibold text-zinc-900 block">Customer Support & Inquiries</span>
-                  <a href="mailto:theprintfactory2026@gmail.com" className="font-mono text-zinc-900 hover:underline">
-                    theprintfactory2026@gmail.com
-                  </a>
-                </div>
-              </div>
+          <div className="inline-flex flex-wrap items-center justify-center gap-3 pt-2">
+            <a
+              href={`mailto:${supportEmail}`}
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-zinc-950 text-white font-mono text-sm font-semibold hover:bg-zinc-800 transition-colors shadow-sm"
+            >
+              <Mail className="w-4 h-4" />
+              {supportEmail}
+            </a>
 
-              <div className="flex items-start gap-3">
-                <ShieldCheck className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
-                <div>
-                  <span className="font-semibold text-zinc-900 block">Commercial Licencing & Verification</span>
-                  <a href="mailto:theprintfactory2026@gmail.com" className="font-mono text-zinc-900 hover:underline">
-                    theprintfactory2026@gmail.com
-                  </a>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <MessageSquare className="w-4 h-4 text-zinc-700 flex-shrink-0 mt-0.5" />
-                <div>
-                  <span className="font-semibold text-zinc-900 block">Response Time</span>
-                  <span>Usually within 24 business hours</span>
-                </div>
-              </div>
-            </div>
+            <button
+              onClick={handleCopy}
+              type="button"
+              className="inline-flex items-center gap-1.5 px-4 py-3 rounded-xl bg-zinc-50 border border-zinc-200 text-xs font-semibold text-zinc-700 hover:bg-zinc-100 transition-colors"
+            >
+              {copied ? (
+                <>
+                  <Check className="w-4 h-4 text-emerald-600" />
+                  <span className="text-emerald-700">Copied!</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-4 h-4 text-zinc-500" />
+                  <span>Copy Address</span>
+                </>
+              )}
+            </button>
           </div>
         </div>
 
-        {/* Contact Form */}
-        <div className="md:col-span-7 bg-white border border-zinc-200 rounded-xl p-6 shadow-sm">
-          {submitted ? (
-            <div className="text-center py-12 space-y-3">
-              <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
-                <CheckCircle2 className="w-6 h-6" />
-              </div>
-              <h3 className="text-lg font-bold text-zinc-950">Message Received!</h3>
-              <p className="text-xs text-zinc-500 max-w-sm mx-auto leading-relaxed">
-                Thank you for reaching out, {name}. A member of our support engineering team will review your inquiry and follow up at {email}.
-              </p>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setSubmitted(false)}
-                className="mt-4 text-xs"
-              >
-                Send Another Message
-              </Button>
+        {/* Support Breakdown */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-zinc-100">
+          <div className="p-4 rounded-xl bg-zinc-50 border border-zinc-200/80 space-y-1.5">
+            <div className="flex items-center gap-2 text-zinc-900 font-bold text-xs">
+              <ShieldCheck className="w-4 h-4 text-emerald-600" />
+              <span>Customer & Order Support</span>
             </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">
-                  Your Name *
-                </label>
-                <Input
-                  type="text"
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. Jordan Lee"
-                />
-              </div>
+            <p className="text-xs text-zinc-600 leading-relaxed">
+              Assistance with digital download access, order confirmation, and payment receipts.
+            </p>
+          </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">
-                  Your Email *
-                </label>
-                <Input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">
-                  Subject *
-                </label>
-                <Input
-                  type="text"
-                  required
-                  value={subject}
-                  onChange={(e) => setSubject(e.target.value)}
-                  placeholder="Order inquiry, printing question, or feedback..."
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">
-                  Message *
-                </label>
-                <textarea
-                  required
-                  rows={4}
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Describe your inquiry with as much detail as possible..."
-                  className="w-full rounded-md border border-zinc-300 bg-white p-3 text-xs text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-950 leading-relaxed"
-                />
-              </div>
-
-              <Button
-                type="submit"
-                variant="primary"
-                size="lg"
-                isLoading={isLoading}
-                className="w-full text-xs font-bold"
-              >
-                Send Inquiry
-              </Button>
-            </form>
-          )}
+          <div className="p-4 rounded-xl bg-zinc-50 border border-zinc-200/80 space-y-1.5">
+            <div className="flex items-center gap-2 text-zinc-900 font-bold text-xs">
+              <Clock className="w-4 h-4 text-blue-600" />
+              <span>Response Window</span>
+            </div>
+            <p className="text-xs text-zinc-600 leading-relaxed">
+              We usually respond within 24 business hours. Please include your Order ID if applicable.
+            </p>
+          </div>
         </div>
+      </div>
+
+      {/* Helpful Quick Links */}
+      <div className="rounded-xl bg-zinc-50 border border-zinc-200 p-5 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
+        <div className="flex items-center gap-2 text-zinc-700">
+          <HelpCircle className="w-4 h-4 text-zinc-500 shrink-0" />
+          <span>Looking for immediate answers regarding printing, slicing, or file formats?</span>
+        </div>
+        <Link
+          href="/faq"
+          className="font-semibold text-zinc-950 hover:underline flex items-center gap-1 shrink-0"
+        >
+          Browse FAQ <ArrowRight className="w-3.5 h-3.5" />
+        </Link>
       </div>
     </div>
   );
 }
-
