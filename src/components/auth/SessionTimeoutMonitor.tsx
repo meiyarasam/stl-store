@@ -7,6 +7,7 @@ import { Clock, RotateCcw, LogOut } from "lucide-react";
 
 const STORAGE_LAST_ACTIVE = "stlforge_last_active_time";
 const STORAGE_LOGGED_OUT = "stlforge_session_logged_out";
+const SESSION_ACTIVE_KEY = "stlforge_browser_session_active";
 
 export function SessionTimeoutMonitor() {
   const { status, update } = useSession();
@@ -25,6 +26,7 @@ export function SessionTimeoutMonitor() {
   const [secondsRemaining, setSecondsRemaining] = useState(warningSeconds);
   const isLoggingOutRef = useRef(false);
   const lastActivityReportedRef = useRef(Date.now());
+  const sessionVerifiedRef = useRef(false);
 
   const getRedirectUrl = useCallback(() => {
     if (pathname && pathname.startsWith("/admin")) {
@@ -38,6 +40,7 @@ export function SessionTimeoutMonitor() {
     isLoggingOutRef.current = true;
 
     try {
+      sessionStorage.removeItem(SESSION_ACTIVE_KEY);
       localStorage.removeItem(STORAGE_LAST_ACTIVE);
       localStorage.setItem(STORAGE_LOGGED_OUT, Date.now().toString());
     } catch {
@@ -56,6 +59,7 @@ export function SessionTimeoutMonitor() {
     lastActivityReportedRef.current = now;
     try {
       localStorage.setItem(STORAGE_LAST_ACTIVE, now.toString());
+      sessionStorage.setItem(SESSION_ACTIVE_KEY, "true");
     } catch {}
 
     // Trigger NextAuth session refresh on server to extend JWT lastActive
@@ -79,11 +83,118 @@ export function SessionTimeoutMonitor() {
       lastActivityReportedRef.current = now;
       try {
         localStorage.setItem(STORAGE_LAST_ACTIVE, now.toString());
+        sessionStorage.setItem(SESSION_ACTIVE_KEY, "true");
       } catch {}
     }
   }, [showWarning]);
 
-  // Attach activity listeners when authenticated
+  // 1. Browser Session Continuity Check:
+  // Ensures that closing and reopening the browser or all website tabs terminates the session,
+  // even if modern browsers (like Chrome with "Continue where you left off") restore cookies from disk.
+  useEffect(() => {
+    if (status !== "authenticated" || sessionVerifiedRef.current) return;
+
+    let isMounted = true;
+    let channel: BroadcastChannel | null = null;
+    try {
+      if (typeof BroadcastChannel !== "undefined") {
+        channel = new BroadcastChannel("stlforge_session_presence");
+      }
+    } catch {}
+
+    const verifyBrowserSession = async () => {
+      let isSessionActiveLocally = false;
+      try {
+        isSessionActiveLocally = sessionStorage.getItem(SESSION_ACTIVE_KEY) === "true";
+      } catch {}
+
+      if (isSessionActiveLocally) {
+        // Tab is part of active running session
+        sessionVerifiedRef.current = true;
+        return;
+      }
+
+      // If sessionStorage is empty, check if another tab in the same browser session is active
+      if (channel) {
+        let peerConfirmed = false;
+        const peerHandler = (msg: MessageEvent) => {
+          if (msg.data?.type === "SESSION_ACTIVE_REPLY") {
+            peerConfirmed = true;
+          }
+        };
+        channel.addEventListener("message", peerHandler);
+        channel.postMessage({ type: "CHECK_SESSION_ACTIVE" });
+
+        // Await peer tab response
+        await new Promise((resolve) => setTimeout(resolve, 150));
+        channel.removeEventListener("message", peerHandler);
+
+        if (!isMounted) return;
+
+        if (peerConfirmed) {
+          // Another tab in this browser session is active and confirmed presence
+          try {
+            sessionStorage.setItem(SESSION_ACTIVE_KEY, "true");
+          } catch {}
+          sessionVerifiedRef.current = true;
+          return;
+        }
+      }
+
+      // No active session in sessionStorage AND no other tab confirmed presence:
+      // The browser or all website tabs were closed, and the site was reopened!
+      console.warn("[Auth] Fresh browser session detected with restored session cookie. Purging stale session.");
+      try {
+        sessionStorage.removeItem(SESSION_ACTIVE_KEY);
+        localStorage.removeItem(STORAGE_LAST_ACTIVE);
+        localStorage.setItem(STORAGE_LOGGED_OUT, Date.now().toString());
+      } catch {}
+
+      // Clear the restored session immediately
+      await signOut({ redirect: false });
+      if (pathname && (pathname.startsWith("/admin") || pathname.startsWith("/account"))) {
+        window.location.href = pathname.startsWith("/admin") ? "/admin/login" : "/login";
+      } else {
+        window.location.reload();
+      }
+    };
+
+    verifyBrowserSession();
+
+    return () => {
+      isMounted = false;
+      if (channel) {
+        channel.close();
+      }
+    };
+  }, [status, pathname]);
+
+  // Broadcast channel responder for other tabs
+  useEffect(() => {
+    if (status !== "authenticated") return;
+
+    let channel: BroadcastChannel | null = null;
+    try {
+      if (typeof BroadcastChannel !== "undefined") {
+        channel = new BroadcastChannel("stlforge_session_presence");
+        channel.onmessage = (msg: MessageEvent) => {
+          if (msg.data?.type === "CHECK_SESSION_ACTIVE") {
+            try {
+              if (sessionStorage.getItem(SESSION_ACTIVE_KEY) === "true") {
+                channel?.postMessage({ type: "SESSION_ACTIVE_REPLY" });
+              }
+            } catch {}
+          }
+        };
+      }
+    } catch {}
+
+    return () => {
+      if (channel) channel.close();
+    };
+  }, [status]);
+
+  // 2. Attach activity listeners when authenticated
   useEffect(() => {
     if (status !== "authenticated") {
       setShowWarning(false);
@@ -145,7 +256,7 @@ export function SessionTimeoutMonitor() {
     }
   }, [pathname, status, recordActivity]);
 
-  // Inactivity countdown timer tick
+  // 3. Inactivity countdown timer tick
   useEffect(() => {
     if (status !== "authenticated") return;
 

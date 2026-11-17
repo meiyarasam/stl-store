@@ -69,6 +69,7 @@ export function Header() {
     setAccountMenuOpen(false);
     setMobileMenuOpen(false);
     try {
+      sessionStorage.removeItem("stlforge_browser_session_active");
       localStorage.removeItem("stlforge_last_active_time");
       localStorage.setItem("stlforge_session_logged_out", Date.now().toString());
     } catch {}

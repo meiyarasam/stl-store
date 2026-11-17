@@ -44,6 +44,11 @@ export function LoginForm() {
         setErrorMessage(res.error);
         setIsLoading(false);
       } else {
+        try {
+          sessionStorage.setItem("stlforge_browser_session_active", "true");
+          localStorage.setItem("stlforge_last_active_time", Date.now().toString());
+          localStorage.removeItem("stlforge_session_logged_out");
+        } catch {}
         router.push(callbackUrl);
         router.refresh();
       }
