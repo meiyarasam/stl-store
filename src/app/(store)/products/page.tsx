@@ -5,7 +5,8 @@ import { getAllCategories } from "@/services/product.service";
 import { ProductGrid } from "@/components/products/ProductGrid";
 import { ProductFilters } from "@/components/products/ProductFilters";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 interface ProductsPageProps {
   searchParams: {

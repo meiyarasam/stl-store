@@ -14,7 +14,8 @@ import {
   Sparkles,
 } from "lucide-react";
 
-export const revalidate = 60; // ISR cache 60s
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function HomePage() {
   const [allProducts, categories] = await Promise.all([
@@ -22,11 +23,18 @@ export default async function HomePage() {
     getAllCategories(),
   ]);
 
-  const featuredProducts = allProducts.filter((p) => p.isFeatured).slice(0, 6);
-  const newArrivals = allProducts.slice(0, 3);
+  // Featured 3D Models: prioritize explicitly featured designs, and fill with latest additions
+  const explicitlyFeatured = allProducts.filter((p) => p.isFeatured);
+  const otherProducts = allProducts.filter((p) => !p.isFeatured);
+  const featuredProducts =
+    explicitlyFeatured.length > 0
+      ? [...explicitlyFeatured, ...otherProducts].slice(0, 6)
+      : allProducts.slice(0, 6);
+
+  const newArrivals = allProducts.slice(0, 6);
   const bestSellers = [...allProducts]
     .sort((a, b) => b.downloadCount - a.downloadCount)
-    .slice(0, 3);
+    .slice(0, 6);
 
   return (
     <div className="space-y-20 pb-20">

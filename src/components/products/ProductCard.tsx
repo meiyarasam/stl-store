@@ -21,10 +21,10 @@ export function ProductCard({ product }: ProductCardProps) {
   const { getProductPrice, formatAmount, addToCart } = useStore();
 
   const { amount } = getProductPrice(product);
-  const primaryImg =
-    product.images?.find((img) => img.isPrimary)?.url ||
-    product.images?.[0]?.url ||
-    "/images/logo.png";
+  const rawImg =
+    product.images?.find((img) => img.isPrimary && img.url?.trim())?.url ||
+    product.images?.find((img) => img.url?.trim())?.url;
+  const primaryImg = rawImg && rawImg.trim() ? rawImg.trim() : "/images/logo.png";
 
   const handleBuyNow = (e: React.MouseEvent) => {
     e.preventDefault();

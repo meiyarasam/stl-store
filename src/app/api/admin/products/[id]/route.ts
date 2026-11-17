@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/authOptions";
 import prisma, { isDatabaseReachable } from "@/lib/database/prisma";
@@ -319,6 +320,17 @@ export async function PUT(
       })),
     };
 
+    try {
+      revalidatePath("/");
+      revalidatePath("/products");
+      revalidatePath("/admin/products");
+      if (updated.slug) {
+        revalidatePath(`/products/${updated.slug}`);
+      }
+    } catch (revalErr) {
+      console.warn("Revalidation notice:", revalErr);
+    }
+
     return NextResponse.json({
       success: true,
       message: "Product updated successfully",
@@ -401,6 +413,14 @@ export async function DELETE(
           console.warn("Storage cleanup notice for deleted product:", err);
         });
       }
+    }
+
+    try {
+      revalidatePath("/");
+      revalidatePath("/products");
+      revalidatePath("/admin/products");
+    } catch (revalErr) {
+      console.warn("Revalidation notice:", revalErr);
     }
 
     return NextResponse.json({

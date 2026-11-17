@@ -605,11 +605,12 @@ export default function EditProductPage() {
                   onChange={(e) => setCategoryId(e.target.value)}
                   className="w-full text-xs bg-zinc-50 border border-zinc-200 rounded-lg p-2.5 focus:bg-white focus:outline-none focus:ring-1 focus:ring-zinc-950 font-medium text-zinc-900"
                 >
-                  <option value="cat_miniatures">Miniatures & Figurines</option>
-                  <option value="cat_home">Home & Living / Decor</option>
-                  <option value="cat_gadgets">Tech Accessories & Desk Organization</option>
-                  <option value="cat_toys">Articulated Models & Toys</option>
-                  <option value="cat_functional">Functional & Mechanical Prints</option>
+                  <option value="cat_miniatures">Miniatures & Figures</option>
+                  <option value="cat_functional">Functional & Mechanical</option>
+                  <option value="cat_home_decor">Home & Decor</option>
+                  <option value="cat_cosplay">Cosplay & Props</option>
+                  <option value="cat_gadgets">Tech & Organization</option>
+                  <option value="cat_articulated">Articulated & Toys</option>
                 </select>
               </div>
 

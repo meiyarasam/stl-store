@@ -38,6 +38,8 @@ export default function NewProductPage() {
     "Layer Height: 0.16mm | Infill: 20% Gyroid | Supports: None | Material: PLA+"
   );
   const [licenceType, setLicenceType] = useState("Personal Use Only (Non-Commercial)");
+  const [isPublished, setIsPublished] = useState<boolean>(true);
+  const [isFeatured, setIsFeatured] = useState<boolean>(true);
 
   // 1. Product Preview Image (Strictly direct device upload, no external URLs)
   const [imageUrl, setImageUrl] = useState("");
@@ -364,8 +366,8 @@ export default function NewProductPage() {
         supportedPrinters: supportedPrinters.trim() || "FDM / SLA / Resin",
         printingSettings: printingSettings.trim() || "Standard 3D Print Settings",
         licenceType: licenceType.trim() || "Personal Use Only (Non-Commercial)",
-        isPublished: true,
-        isFeatured: false,
+        isPublished,
+        isFeatured,
         inrPrice: inrNumeric,
         exchangeRates: activeRates,
         prices: {
@@ -538,6 +540,32 @@ export default function NewProductPage() {
                   placeholder="FDM / SLA Resin"
                 />
               </div>
+            </div>
+
+            {/* Visibility & Showcase Options */}
+            <div className="flex flex-wrap items-center gap-6 py-1 bg-zinc-50 border border-zinc-200/80 rounded-lg p-3">
+              <label className="flex items-center gap-2 text-xs font-semibold text-zinc-800 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={isPublished}
+                  onChange={(e) => setIsPublished(e.target.checked)}
+                  className="w-4 h-4 rounded text-zinc-950 border-zinc-300 focus:ring-zinc-950"
+                />
+                <span>Published on Marketplace</span>
+              </label>
+
+              <label className="flex items-center gap-2 text-xs font-semibold text-zinc-800 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={isFeatured}
+                  onChange={(e) => setIsFeatured(e.target.checked)}
+                  className="w-4 h-4 rounded text-zinc-950 border-zinc-300 focus:ring-zinc-950"
+                />
+                <span className="flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  Feature on Homepage (Featured 3D Models)
+                </span>
+              </label>
             </div>
 
             <div>

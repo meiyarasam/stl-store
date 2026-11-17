@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/authOptions";
 import prisma, { isDatabaseReachable } from "@/lib/database/prisma";
@@ -270,8 +271,8 @@ export async function POST(req: Request) {
           supportedPrinters: supportedPrinters || "FDM / SLA / Resin",
           printingSettings: printingSettings || "Standard 3D Print Settings",
           licenceType: licenceType || "Personal Use Only (Non-Commercial)",
-          isPublished: isPublished ?? true,
-          isFeatured: isFeatured ?? false,
+          isPublished: typeof isPublished === "boolean" ? isPublished : true,
+          isFeatured: typeof isFeatured === "boolean" ? isFeatured : true,
           prices: {
             create: priceRecords.map((p) => ({
               currency: p.currency,
@@ -310,6 +311,15 @@ export async function POST(req: Request) {
         fileSizeBytes: Number(f.fileSizeBytes),
       })),
     };
+
+    // Instant Next.js cache revalidation for storefront & admin
+    try {
+      revalidatePath("/");
+      revalidatePath("/products");
+      revalidatePath("/admin/products");
+    } catch (revalErr) {
+      console.warn("Revalidation notice:", revalErr);
+    }
 
     return NextResponse.json(
       {
