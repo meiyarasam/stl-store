@@ -3,11 +3,13 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useSession } from "next-auth/react";
 import { useStore } from "@/context/StoreContext";
 import { X, Trash2, ArrowRight, ShoppingBag, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export function CartDrawer() {
+  const { data: session } = useSession();
   const { cart, removeFromCart, clearCart, cartTotal, formatAmount, isCartOpen, setIsCartOpen, currency, getProductPrice } = useStore();
 
   if (!isCartOpen) return null;
@@ -130,13 +132,34 @@ export function CartDrawer() {
               </div>
 
               <div className="space-y-2">
-                <Link
-                  href="/checkout"
-                  onClick={() => setIsCartOpen(false)}
-                  className="w-full min-h-[48px] flex items-center justify-center gap-2 bg-zinc-950 text-white font-semibold py-3 px-4 rounded-lg hover:bg-zinc-800 transition-colors touch-manipulation text-xs sm:text-sm shadow-sm"
-                >
-                  Proceed to Checkout <ArrowRight className="w-4 h-4" />
-                </Link>
+                {session?.user ? (
+                  <Link
+                    href="/checkout"
+                    onClick={() => setIsCartOpen(false)}
+                    className="w-full min-h-[48px] flex items-center justify-center gap-2 bg-zinc-950 text-white font-semibold py-3 px-4 rounded-lg hover:bg-zinc-800 transition-colors touch-manipulation text-xs sm:text-sm shadow-sm"
+                  >
+                    Proceed to Checkout <ArrowRight className="w-4 h-4" />
+                  </Link>
+                ) : (
+                  <>
+                    <Link
+                      href="/register?redirect=/checkout"
+                      onClick={() => setIsCartOpen(false)}
+                      className="w-full min-h-[48px] flex items-center justify-center gap-2 bg-zinc-950 text-white font-semibold py-3 px-4 rounded-lg hover:bg-zinc-800 transition-colors touch-manipulation text-xs sm:text-sm shadow-sm"
+                    >
+                      Create Account & Checkout <ArrowRight className="w-4 h-4" />
+                    </Link>
+                    <div className="text-center pt-0.5">
+                      <Link
+                        href="/login?redirect=/checkout"
+                        onClick={() => setIsCartOpen(false)}
+                        className="text-[11px] font-medium text-zinc-500 hover:text-zinc-950 underline underline-offset-2"
+                      >
+                        Already have an account? Sign In
+                      </Link>
+                    </div>
+                  </>
+                )}
                 <div className="flex items-center justify-center gap-1.5 text-[11px] text-zinc-500 pt-0.5">
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                   <span className="truncate">Secure 256-bit encrypted checkout via Razorpay</span>

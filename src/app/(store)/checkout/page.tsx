@@ -19,6 +19,7 @@ import {
   AlertCircle,
   ArrowRight,
   CheckCircle2,
+  Loader2,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -30,7 +31,7 @@ declare global {
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const {
     cart,
     cartTotal,
@@ -80,6 +81,12 @@ export default function CheckoutPage() {
   const handlePayNow = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
+
+    if (!session?.user) {
+      setErrorMessage("Please create an account or sign in before completing your purchase.");
+      router.push("/register?redirect=/checkout");
+      return;
+    }
 
     if (cart.length === 0) {
       setErrorMessage("Your cart is empty.");
@@ -259,6 +266,92 @@ export default function CheckoutPage() {
     );
   }
 
+  // Mandatory Authentication: Must create account or sign in before buying
+  if (status === "loading") {
+    return (
+      <div className="max-w-md mx-auto px-4 py-24 text-center space-y-3">
+        <Loader2 className="w-8 h-8 animate-spin text-zinc-400 mx-auto" />
+        <p className="text-xs text-zinc-500 font-medium">Verifying customer account...</p>
+      </div>
+    );
+  }
+
+  if (status === "unauthenticated" || !session?.user) {
+    return (
+      <div className="max-w-lg mx-auto px-4 py-12 sm:py-16 text-center space-y-6">
+        <div className="w-16 h-16 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto shadow-xs border border-blue-100">
+          <Lock className="w-8 h-8" />
+        </div>
+
+        <div className="space-y-2">
+          <h1 className="text-2xl sm:text-3xl font-black text-zinc-950 tracking-tight font-display">
+            Create Account Before Buying
+          </h1>
+          <p className="text-xs text-zinc-600 leading-relaxed max-w-sm mx-auto">
+            To safeguard your purchases and provide permanent access to your 3D STL files and ZIP archives, an account is required before completing checkout.
+          </p>
+        </div>
+
+        <div className="bg-white border border-zinc-200 rounded-2xl p-6 shadow-sm space-y-5 text-left">
+          <div className="space-y-2 pb-4 border-b border-zinc-100">
+            <div className="flex justify-between text-xs text-zinc-600">
+              <span>Items in Cart:</span>
+              <span className="font-bold text-zinc-900">
+                {cart.reduce((sum, item) => sum + item.quantity, 0)} digital model{cart.length > 1 ? "s" : ""}
+              </span>
+            </div>
+            <div className="flex justify-between text-xs text-zinc-600">
+              <span>Delivery Method:</span>
+              <span className="font-semibold text-emerald-600">Instant Download</span>
+            </div>
+            <div className="flex justify-between text-xs text-zinc-600 items-baseline pt-1 border-t border-zinc-100">
+              <span className="font-bold text-zinc-950">Total to Pay:</span>
+              <span className="text-lg font-black text-zinc-950 font-mono">
+                {formatAmount(cartTotal)}
+              </span>
+            </div>
+          </div>
+
+          <div className="space-y-2.5">
+            <Link
+              href="/register?redirect=/checkout"
+              className="w-full flex items-center justify-center gap-2 bg-zinc-950 text-white font-bold py-3.5 px-4 rounded-xl hover:bg-zinc-800 transition-colors text-xs sm:text-sm shadow-sm"
+            >
+              Create Your Account to Checkout <ArrowRight className="w-4 h-4" />
+            </Link>
+
+            <Link
+              href="/login?redirect=/checkout"
+              className="w-full flex items-center justify-center gap-2 bg-zinc-100 text-zinc-800 font-bold py-3 px-4 rounded-xl hover:bg-zinc-200 transition-colors text-xs"
+            >
+              Already have an account? Sign In
+            </Link>
+          </div>
+
+          <div className="pt-2 border-t border-zinc-100 space-y-1.5 text-[11px] text-zinc-500">
+            <div className="flex items-center gap-2 text-zinc-600">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+              <span>Instant access to downloads in your personal account</span>
+            </div>
+            <div className="flex items-center gap-2 text-zinc-600">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+              <span>Permanent 3D STL & ZIP library storage</span>
+            </div>
+            <div className="flex items-center gap-2 text-zinc-600">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+              <span>Verified personal use 3D printing licenses</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-center gap-1.5 text-[11px] text-zinc-400">
+          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+          <span>Encrypted Razorpay Checkout · Takes less than 30 seconds</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-6xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-10 space-y-6 sm:space-y-8 w-full max-w-full overflow-x-hidden">
       {/* Checkout Header */}
@@ -281,10 +374,22 @@ export default function CheckoutPage() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-start w-full">
         {/* Customer Details Form */}
         <div className="lg:col-span-7 bg-white border border-zinc-200 rounded-xl p-4 sm:p-6 shadow-sm space-y-5 sm:space-y-6 w-full max-w-full overflow-hidden">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-emerald-50/80 border border-emerald-200/90 rounded-xl text-xs text-emerald-950">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>
+                Signed in as <strong>{session.user?.name || session.user?.email}</strong> ({session.user?.email})
+              </span>
+            </div>
+            <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-200/80 text-emerald-900 px-2 py-0.5 rounded w-fit">
+              Verified Account
+            </span>
+          </div>
+
           <div>
             <h2 className="text-base sm:text-lg font-bold text-zinc-900">Customer Information</h2>
             <p className="text-xs text-zinc-500 mt-0.5">
-              Your order confirmation and download license will be sent to this email.
+              Your order confirmation and download license will be saved to your account and sent to this email.
             </p>
           </div>
 
@@ -305,15 +410,16 @@ export default function CheckoutPage() {
 
             <div>
               <label className="block text-xs font-semibold text-zinc-700 mb-1">
-                Email Address (For File Delivery) *
+                Email Address (Account File Delivery) *
               </label>
               <Input
                 type="email"
                 required
-                value={email}
+                disabled
+                value={email || session.user?.email || ""}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                className="w-full text-sm"
+                className="w-full text-sm bg-zinc-50 cursor-not-allowed text-zinc-700 font-medium"
               />
             </div>
 

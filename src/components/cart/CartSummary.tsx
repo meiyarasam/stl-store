@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { ArrowRight, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -12,6 +13,8 @@ interface CartSummaryProps {
 }
 
 export function CartSummary({ cartTotal, formatAmount, currency }: CartSummaryProps) {
+  const { data: session } = useSession();
+
   return (
     <div className="bg-white border border-zinc-200 rounded-xl p-4 sm:p-6 space-y-4 sm:space-y-6 shadow-sm sticky top-24 w-full max-w-full overflow-hidden">
       <h2 className="text-base font-black text-zinc-950 tracking-tight font-display border-b border-zinc-100 pb-3">
@@ -43,11 +46,29 @@ export function CartSummary({ cartTotal, formatAmount, currency }: CartSummaryPr
       </div>
 
       <div className="space-y-3 pt-2 w-full">
-        <Link href="/checkout" className="block w-full">
-          <Button variant="primary" size="lg" className="w-full text-xs sm:text-sm font-bold gap-2 min-h-[48px] touch-manipulation shadow-sm">
-            Proceed to Secure Checkout <ArrowRight className="w-4 h-4 shrink-0" />
-          </Button>
-        </Link>
+        {session?.user ? (
+          <Link href="/checkout" className="block w-full">
+            <Button variant="primary" size="lg" className="w-full text-xs sm:text-sm font-bold gap-2 min-h-[48px] touch-manipulation shadow-sm">
+              Proceed to Secure Checkout <ArrowRight className="w-4 h-4 shrink-0" />
+            </Button>
+          </Link>
+        ) : (
+          <>
+            <Link href="/register?redirect=/checkout" className="block w-full">
+              <Button variant="primary" size="lg" className="w-full text-xs sm:text-sm font-bold gap-2 min-h-[48px] touch-manipulation shadow-sm">
+                Create Account & Checkout <ArrowRight className="w-4 h-4 shrink-0" />
+              </Button>
+            </Link>
+            <div className="text-center pt-0.5">
+              <Link
+                href="/login?redirect=/checkout"
+                className="text-[11px] font-medium text-zinc-500 hover:text-zinc-950 underline underline-offset-2"
+              >
+                Already have an account? Sign In
+              </Link>
+            </div>
+          </>
+        )}
 
         <div className="flex items-center justify-center gap-1.5 text-[11px] text-zinc-500 pt-1">
           <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />

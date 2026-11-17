@@ -8,15 +8,28 @@ import { createRazorpayOrder, generateUPIString, MERCHANT_PROFILE_URL } from "@/
 export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Account required: Please create an account or sign in before placing an order.",
+        },
+        { status: 401 }
+      );
+    }
+
     const body = await req.json();
 
     const validated = checkoutSchema.parse(body);
 
+    const userEmail = session.user.email || validated.customerEmail;
+    const userId = (session.user as any)?.id || null;
+
     // 1. Create internal pending order with authoritative pricing
     const { order, internalId, amount, currency } = await createPendingOrder({
-      userId: (session?.user as any)?.id || null,
-      customerEmail: validated.customerEmail,
-      customerName: validated.customerName,
+      userId,
+      customerEmail: userEmail,
+      customerName: validated.customerName || session.user?.name || "Valued Customer",
       customerPhone: validated.customerPhone,
       customerCountry: validated.customerCountry,
       currency: validated.currency,
