@@ -133,14 +133,17 @@ export async function POST(req: Request) {
       );
     }
 
-    // Require actual uploaded primary STL file
-    const stlFile = files?.find((f: any) => parseFileType(f.fileType) === "STL" || parseFileType(f.fileType) === "THREE_MF" || parseFileType(f.fileType) === "OBJ");
-    if (!files || !Array.isArray(files) || !stlFile || !stlFile.storagePath) {
+    // Require at least one valid uploaded downloadable file (either STL/3MF/OBJ model or ZIP/folder package)
+    const validFiles =
+      files && Array.isArray(files)
+        ? files.filter((f: any) => f.storagePath && typeof f.storagePath === "string" && f.storagePath.trim())
+        : [];
+    if (validFiles.length === 0) {
       return NextResponse.json(
         {
           success: false,
           message: "Validation Error",
-          error: "Please upload the primary 3D printable STL model file before publishing.",
+          error: "Please upload at least one downloadable file: either an individual STL model file or a ZIP/folder package before publishing.",
         },
         { status: 400 }
       );

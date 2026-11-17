@@ -18,9 +18,13 @@ import {
   Loader2,
   RefreshCw,
   X,
+  FolderUp,
+  FolderArchive,
+  Folder,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import JSZip from "jszip";
 import { uploadFileToStorage } from "@/lib/storage/clientUpload";
 import { safeFetchJson } from "@/lib/api/safeFetch";
 
@@ -48,7 +52,7 @@ export default function NewProductPage() {
   const [imageProgress, setImageProgress] = useState<number>(0);
   const [imageError, setImageError] = useState<string | null>(null);
 
-  // 2. Primary 3D STL / 3MF Model File
+  // 2. Primary 3D STL / 3MF Model File (Optional)
   const [stlFileName, setStlFileName] = useState("");
   const [stlFileSize, setStlFileSize] = useState<number>(0);
   const [stlStoragePath, setStlStoragePath] = useState<string>("");
@@ -56,13 +60,18 @@ export default function NewProductPage() {
   const [stlProgress, setStlProgress] = useState<number>(0);
   const [stlError, setStlError] = useState<string | null>(null);
 
-  // 3. Optional ZIP Package Archive
+  // 3. Package Archive (ZIP or Folder)
+  const [packageMode, setPackageMode] = useState<"zip" | "folder">("zip");
   const [zipFileName, setZipFileName] = useState("");
   const [zipFileSize, setZipFileSize] = useState<number>(0);
   const [zipStoragePath, setZipStoragePath] = useState<string>("");
   const [isUploadingZip, setIsUploadingZip] = useState(false);
   const [zipProgress, setZipProgress] = useState<number>(0);
   const [zipError, setZipError] = useState<string | null>(null);
+  const [isZippingFolder, setIsZippingFolder] = useState(false);
+  const [zippingProgress, setZippingProgress] = useState<number>(0);
+  const [folderFileCount, setFolderFileCount] = useState<number>(0);
+  const [isPackagedFromFolder, setIsPackagedFromFolder] = useState<boolean>(false);
 
   // Product Base Price & Live Currency Conversion (Only INR is editable)
   const [priceINR, setPriceINR] = useState("999");
@@ -76,7 +85,16 @@ export default function NewProductPage() {
 
   const stlInputRef = useRef<HTMLInputElement>(null);
   const zipInputRef = useRef<HTMLInputElement>(null);
+  const folderInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
+
+  // Ensure folder upload attributes are active on webkit/chromium browsers
+  useEffect(() => {
+    if (folderInputRef.current) {
+      folderInputRef.current.setAttribute("webkitdirectory", "");
+      folderInputRef.current.setAttribute("directory", "");
+    }
+  }, []);
 
   // Fetch live exchange rates on mount and on user refresh
   const fetchRates = async (forceRefresh = false) => {
@@ -208,7 +226,7 @@ export default function NewProductPage() {
     }
   };
 
-  // 2. Handle Primary 3D STL / 3MF Upload
+  // 2. Handle Primary 3D STL / 3MF Upload (Optional)
   const handleStlFileUpload = async (file: File) => {
     if (!file) return;
 
@@ -221,6 +239,11 @@ export default function NewProductPage() {
 
     if (file.size > 150 * 1024 * 1024) {
       setStlError(`File exceeds 150 MB limit (${formatBytes(file.size)}).`);
+      return;
+    }
+
+    // Prevent duplicate upload
+    if (stlFileName === file.name && stlFileSize === file.size && stlStoragePath) {
       return;
     }
 
@@ -239,18 +262,24 @@ export default function NewProductPage() {
         onProgress: (p) => setStlProgress(p),
       });
 
+      if (!result.storagePath) {
+        throw new Error("Storage provider did not return a confirmed storage path.");
+      }
+
       setStlStoragePath(result.storagePath);
       setStlProgress(100);
     } catch (err: any) {
       console.error("STL storage upload error:", err);
       setStlError(err.message || "Failed to upload STL model to private storage.");
+      setStlStoragePath("");
     } finally {
       setIsUploadingStl(false);
+      if (stlInputRef.current) stlInputRef.current.value = "";
     }
   };
 
-  // 3. Handle Optional ZIP Package Upload
-  const handleZipFileUpload = async (file: File) => {
+  // 3. Handle ZIP Package Upload (Option A)
+  const handleZipFileUpload = async (file: File, fromFolder = false) => {
     if (!file) return;
 
     const ext = file.name.split(".").pop()?.toLowerCase() || "";
@@ -264,8 +293,14 @@ export default function NewProductPage() {
       return;
     }
 
+    // Prevent duplicate upload
+    if (zipFileName === file.name && zipFileSize === file.size && zipStoragePath) {
+      return;
+    }
+
     setZipFileName(file.name);
     setZipFileSize(file.size);
+    setIsPackagedFromFolder(fromFolder);
     setIsUploadingZip(true);
     setZipProgress(0);
     setZipError(null);
@@ -279,13 +314,100 @@ export default function NewProductPage() {
         onProgress: (p) => setZipProgress(p),
       });
 
+      if (!result.storagePath) {
+        throw new Error("Storage provider did not return a confirmed storage path.");
+      }
+
       setZipStoragePath(result.storagePath);
       setZipProgress(100);
     } catch (err: any) {
       console.error("ZIP storage upload error:", err);
       setZipError(err.message || "Failed to upload ZIP archive to private storage.");
+      setZipStoragePath("");
     } finally {
       setIsUploadingZip(false);
+      if (zipInputRef.current) zipInputRef.current.value = "";
+    }
+  };
+
+  // 4. Handle Folder Upload (Option B: packages folder to ZIP preserving nested structure)
+  const handleFolderUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const fileList = e.target.files;
+    if (!fileList || fileList.length === 0) return;
+
+    const files = Array.from(fileList);
+    setZipError(null);
+    setMessage(null);
+
+    // Filter out OS-generated junk files
+    const cleanFiles = files.filter(
+      (f) => !f.name.startsWith("._") && f.name !== ".DS_Store" && f.name !== "Thumbs.db"
+    );
+
+    if (cleanFiles.length === 0) {
+      setZipError("Selected folder contains no valid files.");
+      if (folderInputRef.current) folderInputRef.current.value = "";
+      return;
+    }
+
+    // 1. Calculate uncompressed folder size
+    let totalBytes = 0;
+    for (const f of cleanFiles) {
+      totalBytes += f.size;
+    }
+
+    if (totalBytes > 250 * 1024 * 1024) {
+      setZipError(`Folder total uncompressed size (${formatBytes(totalBytes)}) exceeds the 250 MB limit.`);
+      if (folderInputRef.current) folderInputRef.current.value = "";
+      return;
+    }
+
+    // 2. Derive root folder name
+    const firstRel = cleanFiles[0].webkitRelativePath || cleanFiles[0].name;
+    const rootName = firstRel.includes("/") ? firstRel.split("/")[0] : (slug || "folder_package");
+    const zipName = `${rootName}.zip`;
+
+    setFolderFileCount(cleanFiles.length);
+    setIsZippingFolder(true);
+    setZippingProgress(0);
+
+    try {
+      const zip = new JSZip();
+
+      // Add each file with preserved relative path structure
+      for (const file of cleanFiles) {
+        const relativePath = file.webkitRelativePath || file.name;
+        zip.file(relativePath, file);
+      }
+
+      // Generate ZIP blob with progress callback
+      const zipBlob = await zip.generateAsync(
+        {
+          type: "blob",
+          compression: "DEFLATE",
+          compressionOptions: { level: 6 },
+        },
+        (metadata) => {
+          setZippingProgress(Math.round(metadata.percent));
+        }
+      );
+
+      setIsZippingFolder(false);
+
+      // Create standard File from Blob preserving original folder name
+      const packagedZipFile = new File([zipBlob], zipName, {
+        type: "application/zip",
+        lastModified: Date.now(),
+      });
+
+      // Upload to Supabase Storage
+      await handleZipFileUpload(packagedZipFile, true);
+    } catch (err: any) {
+      console.error("Folder zipping error:", err);
+      setZipError(`Failed to package folder: ${err.message || "Unknown error"}`);
+      setIsZippingFolder(false);
+    } finally {
+      if (folderInputRef.current) folderInputRef.current.value = "";
     }
   };
 
@@ -318,17 +440,19 @@ export default function NewProductPage() {
       return;
     }
 
-    if (!stlStoragePath.trim()) {
+    // At least one downloadable file (STL or ZIP/folder package) must exist
+    const hasDownloadableFile = Boolean(stlStoragePath.trim() || zipStoragePath.trim());
+    if (!hasDownloadableFile) {
       setMessage({
-        text: "Please select and upload the primary 3D STL / 3MF model file.",
+        text: "Please upload at least one downloadable file: either an individual STL model file or a ZIP/folder package.",
         type: "error",
       });
       return;
     }
 
-    if (isUploadingImage || isUploadingStl || isUploadingZip) {
+    if (isUploadingImage || isUploadingStl || isUploadingZip || isZippingFolder) {
       setMessage({
-        text: "File uploads are still in progress. Please wait for completion before publishing.",
+        text: "File uploads or packaging are still in progress. Please wait for completion before publishing.",
         type: "error",
       });
       return;
@@ -379,19 +503,27 @@ export default function NewProductPage() {
         },
         images: [imageUrl.trim()],
         files: [
-          {
-            fileName: stlFileName.trim() || "model.stl",
-            fileType: stlFileName.endsWith(".3mf") ? "THREE_MF" : stlFileName.endsWith(".obj") ? "OBJ" : "STL",
-            fileSizeBytes: stlFileSize || 45000000,
-            storagePath: stlStoragePath,
-          },
-          ...(zipFileName.trim() && zipStoragePath
+          ...(stlFileName.trim() && stlStoragePath.trim()
+            ? [
+                {
+                  fileName: stlFileName.trim(),
+                  fileType: stlFileName.endsWith(".3mf")
+                    ? "THREE_MF"
+                    : stlFileName.endsWith(".obj")
+                    ? "OBJ"
+                    : "STL",
+                  fileSizeBytes: stlFileSize || 45000000,
+                  storagePath: stlStoragePath.trim(),
+                },
+              ]
+            : []),
+          ...(zipFileName.trim() && zipStoragePath.trim()
             ? [
                 {
                   fileName: zipFileName.trim(),
                   fileType: "ZIP",
                   fileSizeBytes: zipFileSize || 95000000,
-                  storagePath: zipStoragePath,
+                  storagePath: zipStoragePath.trim(),
                 },
               ]
             : []),
@@ -430,8 +562,9 @@ export default function NewProductPage() {
     isUploadingImage ||
     isUploadingStl ||
     isUploadingZip ||
+    isZippingFolder ||
     !imageUrl.trim() ||
-    !stlStoragePath.trim();
+    (!stlStoragePath.trim() && !zipStoragePath.trim());
 
   return (
     <div className="min-h-screen bg-zinc-50/50 pb-16">
@@ -919,16 +1052,16 @@ export default function NewProductPage() {
               )}
             </div>
 
-            {/* 2. Primary 3D STL Model File Upload */}
+            {/* 2. Primary 3D STL Model File Upload (Optional) */}
             <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-4 sm:p-5 space-y-4">
               <div className="flex items-center justify-between">
                 <div>
                   <label className="block text-xs font-bold text-zinc-900 flex items-center gap-1.5">
                     <FileCode className="w-4 h-4 text-emerald-600" />
-                    Primary 3D STL / 3MF Model File *
+                    Primary 3D STL / 3MF Model File (Optional)
                   </label>
                   <p className="text-[11px] text-zinc-500 mt-0.5">
-                    Direct binary upload to secure private storage (stl-files-private).
+                    Optional individual model upload to secure private storage (stl-files-private).
                   </p>
                 </div>
 
@@ -941,8 +1074,8 @@ export default function NewProductPage() {
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Stored: {formatBytes(stlFileSize)}
                   </span>
                 ) : (
-                  <span className="text-[11px] text-amber-600 font-semibold">
-                    Upload Required
+                  <span className="text-[11px] text-zinc-400 font-medium">
+                    Optional
                   </span>
                 )}
               </div>
@@ -1032,7 +1165,7 @@ export default function NewProductPage() {
                 >
                   <FileCode className="w-8 h-8 text-zinc-400 group-hover:text-emerald-600 mx-auto mb-2 transition-colors" />
                   <p className="text-xs font-bold text-zinc-800">
-                    Click to select .STL / .3MF / .OBJ file from your computer (or drag & drop)
+                    Click to select optional .STL / .3MF / .OBJ file from your computer (or drag & drop)
                   </p>
                   <p className="text-[11px] text-zinc-500 mt-1">
                     Accepts genuine .STL, .3MF, and .OBJ binary models up to 150MB
@@ -1041,29 +1174,74 @@ export default function NewProductPage() {
               )}
             </div>
 
-            {/* 3. Optional ZIP Archive Card */}
+            {/* 3. Package Archive (ZIP OR Folder Upload) */}
             <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-4 sm:p-5 space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <div>
                   <label className="block text-xs font-bold text-zinc-900 flex items-center gap-1.5">
                     <FileArchive className="w-4 h-4 text-amber-600" />
-                    Complete ZIP Package Archive (Optional)
+                    Package Archive (ZIP or Folder)
                   </label>
                   <p className="text-[11px] text-zinc-500 mt-0.5">
-                    Optional bundle containing pre-supported files, variations, and printing guide.
+                    Upload an existing .ZIP archive or select an entire folder from your computer.
                   </p>
                 </div>
 
-                {isUploadingZip ? (
-                  <span className="text-[11px] text-blue-600 flex items-center gap-1.5 font-semibold">
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" /> Uploading: {zipProgress}%
+                {isZippingFolder ? (
+                  <span className="text-[11px] text-amber-700 flex items-center gap-1.5 font-semibold bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200 shrink-0">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-600" /> Packaging Folder: {zippingProgress}%
+                  </span>
+                ) : isUploadingZip ? (
+                  <span className="text-[11px] text-blue-600 flex items-center gap-1.5 font-semibold bg-blue-50 px-2.5 py-1 rounded-full border border-blue-200 shrink-0">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" /> Uploading to Storage: {zipProgress}%
                   </span>
                 ) : zipStoragePath ? (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 shrink-0">
                     <CheckCircle2 className="w-3.5 h-3.5 text-amber-600" /> Stored: {formatBytes(zipFileSize)}
                   </span>
-                ) : null}
+                ) : (
+                  <span className="text-[11px] text-zinc-400 font-medium">
+                    Optional if STL is uploaded
+                  </span>
+                )}
               </div>
+
+              {/* Two Clear Choices: Upload ZIP Archive vs Upload Folder */}
+              {!zipStoragePath && !isUploadingZip && !isZippingFolder && (
+                <div className="grid grid-cols-2 gap-2 bg-zinc-200/60 p-1 rounded-lg border border-zinc-200">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPackageMode("zip");
+                      setZipError(null);
+                    }}
+                    className={`flex items-center justify-center gap-2 py-2 px-3 rounded-md text-xs font-bold transition-all ${
+                      packageMode === "zip"
+                        ? "bg-white text-zinc-950 shadow-xs border border-zinc-200"
+                        : "text-zinc-600 hover:text-zinc-900"
+                    }`}
+                  >
+                    <FileArchive className="w-4 h-4 text-amber-600" />
+                    <span>Upload ZIP Archive</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPackageMode("folder");
+                      setZipError(null);
+                    }}
+                    className={`flex items-center justify-center gap-2 py-2 px-3 rounded-md text-xs font-bold transition-all ${
+                      packageMode === "folder"
+                        ? "bg-white text-zinc-950 shadow-xs border border-zinc-200"
+                        : "text-zinc-600 hover:text-zinc-900"
+                    }`}
+                  >
+                    <FolderUp className="w-4 h-4 text-blue-600" />
+                    <span>Upload Folder</span>
+                  </button>
+                </div>
+              )}
 
               {/* Error Banner */}
               {zipError && (
@@ -1073,13 +1251,34 @@ export default function NewProductPage() {
                 </div>
               )}
 
-              {/* Progress Bar */}
+              {/* Packaging / Uploading Progress Bars */}
+              {isZippingFolder && (
+                <div className="space-y-1.5 bg-amber-50/60 p-3 rounded-lg border border-amber-200/70">
+                  <div className="flex justify-between text-[11px] text-amber-900 font-medium">
+                    <span>Compressing {folderFileCount} files preserving folder structure...</span>
+                    <span className="font-mono font-bold">{zippingProgress}%</span>
+                  </div>
+                  <div className="w-full bg-amber-200 rounded-full h-1.5 overflow-hidden">
+                    <div
+                      className="bg-amber-600 h-1.5 rounded-full transition-all duration-150"
+                      style={{ width: `${zippingProgress}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+
               {isUploadingZip && (
-                <div className="w-full bg-zinc-200 rounded-full h-1.5 overflow-hidden">
-                  <div
-                    className="bg-amber-600 h-1.5 rounded-full transition-all duration-150"
-                    style={{ width: `${zipProgress}%` }}
-                  />
+                <div className="space-y-1.5 bg-blue-50/60 p-3 rounded-lg border border-blue-200/70">
+                  <div className="flex justify-between text-[11px] text-blue-900 font-medium">
+                    <span>Uploading ZIP archive to private storage...</span>
+                    <span className="font-mono font-bold">{zipProgress}%</span>
+                  </div>
+                  <div className="w-full bg-blue-200 rounded-full h-1.5 overflow-hidden">
+                    <div
+                      className="bg-blue-600 h-1.5 rounded-full transition-all duration-150"
+                      style={{ width: `${zipProgress}%` }}
+                    />
+                  </div>
                 </div>
               )}
 
@@ -1090,19 +1289,41 @@ export default function NewProductPage() {
                 accept=".zip"
                 onChange={(e) => {
                   const file = e.target.files?.[0];
-                  if (file) handleZipFileUpload(file);
+                  if (file) handleZipFileUpload(file, false);
                 }}
                 className="hidden"
               />
 
+              {/* Hidden Folder Input */}
+              <input
+                ref={folderInputRef}
+                type="file"
+                multiple
+                {...({ webkitdirectory: "", directory: "" } as any)}
+                onChange={handleFolderUpload}
+                className="hidden"
+              />
+
               {zipStoragePath ? (
+                /* Confirmed Stored Package Card */
                 <div className="bg-white border border-amber-300 rounded-xl p-4 flex items-center justify-between shadow-2xs">
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="w-10 h-10 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center font-bold text-xs shrink-0">
-                      ZIP
+                      {isPackagedFromFolder ? (
+                        <FolderArchive className="w-5 h-5 text-amber-600" />
+                      ) : (
+                        "ZIP"
+                      )}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-xs font-bold text-zinc-900 truncate">{zipFileName}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-xs font-bold text-zinc-900 truncate">{zipFileName}</p>
+                        {isPackagedFromFolder && (
+                          <span className="text-[10px] bg-blue-50 text-blue-700 border border-blue-200 px-1.5 py-0.5 rounded font-semibold shrink-0">
+                            Folder Packaged ({folderFileCount} files)
+                          </span>
+                        )}
+                      </div>
                       <p className="text-[11px] text-zinc-500">
                         {formatBytes(zipFileSize)} · Stored securely in <span className="font-mono text-amber-700">stl-files-private</span>
                       </p>
@@ -1112,8 +1333,14 @@ export default function NewProductPage() {
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
-                      onClick={() => zipInputRef.current?.click()}
-                      disabled={isUploadingZip}
+                      onClick={() => {
+                        if (isPackagedFromFolder) {
+                          folderInputRef.current?.click();
+                        } else {
+                          zipInputRef.current?.click();
+                        }
+                      }}
+                      disabled={isUploadingZip || isZippingFolder}
                       className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-zinc-700 bg-zinc-100 hover:bg-zinc-200 rounded-lg transition-colors"
                     >
                       <RefreshCw className="w-3 h-3" />
@@ -1126,8 +1353,10 @@ export default function NewProductPage() {
                         setZipStoragePath("");
                         setZipFileName("");
                         setZipFileSize(0);
+                        setIsPackagedFromFolder(false);
+                        setFolderFileCount(0);
                       }}
-                      disabled={isUploadingZip}
+                      disabled={isUploadingZip || isZippingFolder}
                       className="p-1.5 text-zinc-400 hover:text-red-600 rounded-md transition-colors"
                       title="Remove archive"
                     >
@@ -1135,7 +1364,22 @@ export default function NewProductPage() {
                     </button>
                   </div>
                 </div>
+              ) : packageMode === "folder" ? (
+                /* Option B: Folder Selection Drop / Click Area */
+                <div
+                  onClick={() => folderInputRef.current?.click()}
+                  className="border-2 border-dashed border-zinc-300 hover:border-blue-500 hover:bg-blue-50/30 rounded-xl p-6 text-center cursor-pointer transition-all group"
+                >
+                  <FolderUp className="w-8 h-8 text-zinc-400 group-hover:text-blue-600 mx-auto mb-2 transition-colors" />
+                  <p className="text-xs font-bold text-zinc-800">
+                    Click to select an entire Folder from your computer
+                  </p>
+                  <p className="text-[11px] text-zinc-500 mt-1 max-w-md mx-auto">
+                    Selects all files and nested subfolders, preserving folder structure and auto-packaging into a verified .ZIP archive before upload (up to 250MB).
+                  </p>
+                </div>
               ) : (
+                /* Option A: ZIP Archive Drop / Click Area */
                 <div
                   onClick={() => zipInputRef.current?.click()}
                   onDragOver={(e) => {
@@ -1144,16 +1388,16 @@ export default function NewProductPage() {
                   onDrop={(e) => {
                     e.preventDefault();
                     const file = e.dataTransfer.files?.[0];
-                    if (file) handleZipFileUpload(file);
+                    if (file) handleZipFileUpload(file, false);
                   }}
-                  className="border-2 border-dashed border-zinc-300 hover:border-amber-500 hover:bg-amber-50/30 rounded-xl p-4 text-center cursor-pointer transition-all group"
+                  className="border-2 border-dashed border-zinc-300 hover:border-amber-500 hover:bg-amber-50/30 rounded-xl p-6 text-center cursor-pointer transition-all group"
                 >
-                  <FileArchive className="w-6 h-6 text-zinc-400 group-hover:text-amber-600 mx-auto mb-1.5 transition-colors" />
+                  <FileArchive className="w-8 h-8 text-zinc-400 group-hover:text-amber-600 mx-auto mb-2 transition-colors" />
                   <p className="text-xs font-bold text-zinc-800">
                     Click to select .ZIP archive from your computer (or drag & drop)
                   </p>
-                  <p className="text-[10px] text-zinc-500 mt-0.5">
-                    Supports .ZIP archives up to 250MB
+                  <p className="text-[11px] text-zinc-500 mt-1">
+                    Accepts genuine .ZIP packages containing model files, variations, or guides up to 250MB
                   </p>
                 </div>
               )}
@@ -1189,10 +1433,18 @@ export default function NewProductPage() {
             >
               {isLoading
                 ? "Publishing Product to The Print Factory..."
-                : isUploadingStl || isUploadingImage || isUploadingZip
-                ? "Uploading Files to Storage..."
+                : isZippingFolder
+                ? `Packaging Folder to ZIP (${zippingProgress}%)...`
+                : isUploadingImage
+                ? `Uploading Preview Image (${imageProgress}%)...`
+                : isUploadingStl
+                ? `Uploading STL Model (${stlProgress}%)...`
+                : isUploadingZip
+                ? `Uploading Package to Storage (${zipProgress}%)...`
                 : isPublishDisabled
-                ? "Upload Image and STL Model to Publish"
+                ? !imageUrl.trim()
+                  ? "Upload Preview Image to Publish"
+                  : "Upload STL Model or Package Archive to Publish"
                 : "Publish Product to Marketplace"}
             </Button>
           </div>
