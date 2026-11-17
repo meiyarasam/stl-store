@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
@@ -26,6 +26,42 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const accountMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close account dropdown on outside click or Escape key press
+  useEffect(() => {
+    if (!accountMenuOpen) return;
+
+    function handleOutsideClick(event: MouseEvent | TouchEvent) {
+      if (
+        accountMenuRef.current &&
+        !accountMenuRef.current.contains(event.target as Node)
+      ) {
+        setAccountMenuOpen(false);
+      }
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setAccountMenuOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleOutsideClick);
+    document.addEventListener("touchstart", handleOutsideClick);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+      document.removeEventListener("touchstart", handleOutsideClick);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [accountMenuOpen]);
+
+  // Close dropdown on navigation
+  useEffect(() => {
+    setAccountMenuOpen(false);
+  }, [pathname]);
 
   const isAdmin = (session?.user as any)?.role === "ADMIN";
 
@@ -115,9 +151,11 @@ export function Header() {
 
             {/* User Account / Auth Dropdown */}
             {session?.user ? (
-              <div className="relative shrink-0">
+              <div className="relative shrink-0" ref={accountMenuRef}>
                 <button
-                  onClick={() => setAccountMenuOpen(!accountMenuOpen)}
+                  onClick={() => setAccountMenuOpen((prev) => !prev)}
+                  aria-expanded={accountMenuOpen}
+                  aria-haspopup="true"
                   className="flex items-center gap-1.5 p-1.5 sm:px-2.5 sm:py-1.5 text-xs font-medium text-zinc-700 hover:text-zinc-950 hover:bg-zinc-100 rounded-md border border-zinc-200 transition-colors touch-manipulation"
                 >
                   <User className="w-4 h-4 text-zinc-600" />
