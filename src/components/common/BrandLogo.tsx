@@ -10,6 +10,7 @@ interface BrandLogoProps {
   href?: string;
   theme?: "light" | "dark";
   className?: string;
+  layout?: "single-line" | "two-line";
 }
 
 export function BrandLogo({
@@ -19,6 +20,7 @@ export function BrandLogo({
   href = "/",
   theme = "light",
   className = "",
+  layout = "single-line",
 }: BrandLogoProps) {
   const sizeMap = {
     sm: { img: 28, text: "text-sm", sub: "text-[7px]" },
@@ -43,18 +45,54 @@ export function BrandLogo({
       </div>
 
       {showText && (
-        <div className="flex flex-col justify-center leading-tight min-w-0 shrink-0">
-          <span
-            className={`font-black tracking-tight font-display whitespace-nowrap ${text} ${
-              theme === "dark" ? "text-white" : "text-zinc-950"
-            }`}
-          >
-            THE PRINT{" "}
-            <span className="text-blue-600 font-black">FACTORY</span>
-          </span>
+        <div className="flex flex-col justify-center leading-tight min-w-0 shrink-0 select-none">
+          {layout === "two-line" ? (
+            <div className="w-fit flex flex-col justify-center">
+              {/* Line 1: THE PRINT */}
+              <div
+                className={`flex items-baseline whitespace-nowrap leading-none ${
+                  theme === "dark" ? "text-white" : "text-[#000000]"
+                }`}
+              >
+                <span className="font-light tracking-wide uppercase text-xs sm:text-sm md:text-[15px]">
+                  THE
+                </span>
+                <span className="font-black tracking-normal uppercase text-xs sm:text-sm md:text-[15px] ml-1 sm:ml-1.5">
+                  PRINT
+                </span>
+              </div>
+
+              {/* Line 2: FACTORY */}
+              <div
+                aria-label="FACTORY"
+                className={`w-full flex justify-between font-light uppercase text-[9px] sm:text-[10px] md:text-[11px] leading-none whitespace-nowrap mt-1 ${
+                  theme === "dark" ? "text-white" : "text-[#000000]"
+                }`}
+              >
+                <span aria-hidden="true">F</span>
+                <span aria-hidden="true">A</span>
+                <span aria-hidden="true">C</span>
+                <span aria-hidden="true">T</span>
+                <span aria-hidden="true">O</span>
+                <span aria-hidden="true">R</span>
+                <span aria-hidden="true">Y</span>
+              </div>
+              <span className="sr-only">FACTORY</span>
+            </div>
+          ) : (
+            <span
+              className={`font-black tracking-tight font-display whitespace-nowrap ${text} ${
+                theme === "dark" ? "text-white" : "text-zinc-950"
+              }`}
+            >
+              THE PRINT{" "}
+              <span className="text-blue-600 font-black">FACTORY</span>
+            </span>
+          )}
+
           {showTagline && (
             <span
-              className={`hidden sm:block font-semibold tracking-widest uppercase mt-0.5 ${sub} truncate ${
+              className={`hidden sm:block font-semibold tracking-widest uppercase mt-1 ${sub} truncate ${
                 theme === "dark" ? "text-zinc-400" : "text-zinc-500"
               }`}
             >

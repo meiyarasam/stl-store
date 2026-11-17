@@ -86,7 +86,7 @@ export function Header() {
         <div className="flex items-center justify-between h-14 sm:h-16 gap-2 sm:gap-4">
           {/* Logo */}
           <div className="flex items-center gap-2 sm:gap-6 min-w-0 shrink">
-            <BrandLogo size="md" />
+            <BrandLogo size="md" layout="two-line" />
 
             {/* Desktop Navigation Links */}
             <nav className="hidden md:flex items-center space-x-1 lg:space-x-2 pl-4">
