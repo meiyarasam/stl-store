@@ -14,8 +14,10 @@ interface PaymentSuccessPageProps {
 export default async function PaymentSuccessPage({ searchParams }: PaymentSuccessPageProps) {
   const orderId = searchParams.orderId;
 
-  const order = orderId ? await getOrderById(orderId) : null;
-  const downloads = orderId ? await getOrderDownloads(orderId) : [];
+  const [order, downloads] = await Promise.all([
+    orderId ? getOrderById(orderId) : Promise.resolve(null),
+    orderId ? getOrderDownloads(orderId) : Promise.resolve([]),
+  ]);
 
   const isVerified = order?.paymentStatus === "PAID";
 

@@ -18,6 +18,7 @@ import {
   ShoppingBag,
   AlertCircle,
   ArrowRight,
+  CheckCircle2,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -46,6 +47,7 @@ export default function CheckoutPage() {
   const [phone, setPhone] = useState("");
   const [selectedCountry, setSelectedCountry] = useState(country);
   const [isLoading, setIsLoading] = useState(false);
+  const [isVerifyingPayment, setIsVerifyingPayment] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // UPI QR state
@@ -152,7 +154,7 @@ export default function CheckoutPage() {
           color: "#2563eb", // The Print Factory blue
         },
         handler: async function (response: any) {
-          setIsLoading(true);
+          setIsVerifyingPayment(true);
           try {
             // 3. Cryptographically verify payment on backend
             const verifyRes = await fetch("/api/payments/verify", {
@@ -174,11 +176,13 @@ export default function CheckoutPage() {
 
             // Clear cart upon successful verified payment
             clearCart();
-            router.push(verifyData.redirectUrl);
+            // Direct native location replace for immediate browser transition
+            window.location.replace(verifyData.redirectUrl);
           } catch (verifyErr: any) {
             console.error("Payment verification error:", verifyErr);
             setErrorMessage(verifyErr.message || "Payment verification failed");
             setIsLoading(false);
+            setIsVerifyingPayment(false);
           }
         },
         modal: {
@@ -208,7 +212,7 @@ export default function CheckoutPage() {
 
   const handleSimulateUpiVerified = async () => {
     if (!upiData) return;
-    setIsLoading(true);
+    setIsVerifyingPayment(true);
     try {
       const verifyRes = await fetch("/api/payments/verify", {
         method: "POST",
@@ -224,11 +228,11 @@ export default function CheckoutPage() {
       const verifyData = await verifyRes.json();
       if (verifyData.success) {
         clearCart();
-        router.push(verifyData.redirectUrl);
+        window.location.replace(verifyData.redirectUrl);
       }
     } catch (e) {
       setErrorMessage("Could not verify simulated UPI payment.");
-    } finally {
+      setIsVerifyingPayment(false);
       setIsLoading(false);
     }
   };
@@ -420,6 +424,25 @@ export default function CheckoutPage() {
           currency={upiData.currency}
           onSimulateVerified={handleSimulateUpiVerified}
         />
+      )}
+
+      {/* Instant Post-Payment Processing & Redirect Overlay */}
+      {isVerifyingPayment && (
+        <div className="fixed inset-0 z-50 bg-white/95 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-150">
+          <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-4 animate-pulse shadow-sm">
+            <CheckCircle2 className="w-9 h-9" />
+          </div>
+          <h2 className="text-2xl font-black text-zinc-950 font-display">
+            Payment Successful!
+          </h2>
+          <p className="text-sm text-zinc-600 mt-2 max-w-sm leading-relaxed">
+            Cryptographically verifying payment & preparing your digital STL downloads...
+          </p>
+          <div className="mt-6 flex items-center gap-2.5 text-xs font-semibold text-zinc-800 bg-zinc-100 px-4 py-2 rounded-full border border-zinc-200">
+            <div className="w-3.5 h-3.5 border-2 border-zinc-900 border-t-transparent rounded-full animate-spin" />
+            <span>Redirecting to your order...</span>
+          </div>
+        </div>
       )}
     </div>
   );

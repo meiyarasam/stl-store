@@ -259,8 +259,32 @@ export async function markOrderPaidAndGenerateDownloads({
           },
         });
 
-        // Record Payment
-        await prisma.payment.create({
+        // Generate Downloads and Record Payment concurrently in parallel
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + 365);
+
+        const downloadOps: Promise<any>[] = [];
+        for (const item of updatedOrder.items) {
+          if (item.product?.files && item.product.files.length > 0) {
+            for (const file of item.product.files) {
+              downloadOps.push(
+                prisma.download.create({
+                  data: {
+                    orderId: updatedOrder.id,
+                    orderItemId: item.id,
+                    productId: item.productId,
+                    productFileId: file.id,
+                    userId: updatedOrder.userId,
+                    expiresAt,
+                    maxDownloads: 25,
+                  },
+                }).catch(() => {})
+              );
+            }
+          }
+        }
+
+        const paymentOp = prisma.payment.create({
           data: {
             orderId: updatedOrder.id,
             razorpayOrderId: updatedOrder.razorpayOrderId || "manual_order",
@@ -273,29 +297,41 @@ export async function markOrderPaidAndGenerateDownloads({
           },
         }).catch(() => {});
 
-        // Generate Downloads
-        const expiresAt = new Date();
-        expiresAt.setDate(expiresAt.getDate() + 365);
+        // Await all writes concurrently
+        await Promise.all([paymentOp, ...downloadOps]);
 
-        for (const item of updatedOrder.items) {
-          if (item.product?.files && item.product.files.length > 0) {
-            for (const file of item.product.files) {
-              await prisma.download.create({
-                data: {
-                  orderId: updatedOrder.id,
-                  orderItemId: item.id,
-                  productId: item.productId,
-                  productFileId: file.id,
-                  userId: updatedOrder.userId,
-                  expiresAt,
-                  maxDownloads: 25,
-                },
-              }).catch(() => {});
-            }
-          }
-        }
-
-        return getOrderById(updatedOrder.id);
+        // Return order directly without redundant roundtrip query
+        return {
+          id: updatedOrder.id,
+          orderNumber: updatedOrder.orderNumber,
+          userId: updatedOrder.userId,
+          customerEmail: updatedOrder.customerEmail,
+          customerName: updatedOrder.customerName,
+          customerPhone: updatedOrder.customerPhone,
+          customerCountry: updatedOrder.customerCountry,
+          currency: updatedOrder.currency as CurrencyCode,
+          subtotal: Number(updatedOrder.subtotal),
+          discount: Number(updatedOrder.discount),
+          tax: Number(updatedOrder.tax),
+          total: Number(updatedOrder.total),
+          paymentStatus: "PAID",
+          orderStatus: "COMPLETED",
+          razorpayOrderId: updatedOrder.razorpayOrderId,
+          razorpayPaymentId: updatedOrder.razorpayPaymentId,
+          paymentMethod: updatedOrder.paymentMethod,
+          paidAt: updatedOrder.paidAt?.toISOString() || null,
+          createdAt: updatedOrder.createdAt.toISOString(),
+          items: updatedOrder.items.map((i: any) => ({
+            id: i.id,
+            productId: i.productId,
+            productTitle: i.productTitle,
+            productSlug: i.productSlug,
+            currency: i.currency as CurrencyCode,
+            unitPrice: Number(i.unitPrice),
+            quantity: i.quantity,
+            total: Number(i.total),
+          })),
+        };
       }
     } catch (err) {
       console.warn("markOrderPaid database error:", err);
