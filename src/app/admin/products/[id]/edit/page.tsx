@@ -664,42 +664,16 @@ export default function EditProductPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
-              <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">
-                  Supported 3D Printers
-                </label>
-                <Input
-                  type="text"
-                  value={supportedPrinters}
-                  onChange={(e) => setSupportedPrinters(e.target.value)}
-                  placeholder="FDM / SLA / Resin"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">
-                  Recommended Settings
-                </label>
-                <Input
-                  type="text"
-                  value={printingSettings}
-                  onChange={(e) => setPrintingSettings(e.target.value)}
-                  placeholder="0.16mm layer height, 20% infill"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">
-                  Licence Type
-                </label>
-                <Input
-                  type="text"
-                  value={licenceType}
-                  onChange={(e) => setLicenceType(e.target.value)}
-                  placeholder="Personal Use Only (Non-Commercial)"
-                />
-              </div>
+            <div className="pt-2">
+              <label className="block text-xs font-semibold text-zinc-700 mb-1">
+                Licence Type
+              </label>
+              <Input
+                type="text"
+                value={licenceType}
+                onChange={(e) => setLicenceType(e.target.value)}
+                placeholder="Personal Use Only (Non-Commercial)"
+              />
             </div>
           </div>
 

@@ -34,9 +34,7 @@ export default function NewProductPage() {
   const [shortDescription, setShortDescription] = useState("");
   const [fullDescription, setFullDescription] = useState("");
   const [supportedPrinters, setSupportedPrinters] = useState("FDM / SLA / Resin");
-  const [printingSettings, setPrintingSettings] = useState(
-    "Layer Height: 0.16mm | Infill: 20% Gyroid | Supports: None | Material: PLA+"
-  );
+  const [printingSettings, setPrintingSettings] = useState("");
   const [licenceType, setLicenceType] = useState("Personal Use Only (Non-Commercial)");
   const [isPublished, setIsPublished] = useState<boolean>(true);
   const [isFeatured, setIsFeatured] = useState<boolean>(true);
@@ -364,7 +362,7 @@ export default function NewProductPage() {
         shortDescription: shortDescription.trim() || title.trim(),
         fullDescription: fullDescription.trim() || shortDescription.trim() || title.trim(),
         supportedPrinters: supportedPrinters.trim() || "FDM / SLA / Resin",
-        printingSettings: printingSettings.trim() || "Standard 3D Print Settings",
+        printingSettings: printingSettings.trim() || "",
         licenceType: licenceType.trim() || "Personal Use Only (Non-Commercial)",
         isPublished,
         isFeatured,
@@ -530,14 +528,13 @@ export default function NewProductPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-zinc-700 mb-1">
-                  Supported Printers *
+                  Licence Type
                 </label>
                 <Input
                   type="text"
-                  required
-                  value={supportedPrinters}
-                  onChange={(e) => setSupportedPrinters(e.target.value)}
-                  placeholder="FDM / SLA Resin"
+                  value={licenceType}
+                  onChange={(e) => setLicenceType(e.target.value)}
+                  placeholder="Personal Use Only (Non-Commercial)"
                 />
               </div>
             </div>
@@ -592,32 +589,6 @@ export default function NewProductPage() {
                 placeholder="Provide detailed instructions, mechanical tolerance details, print settings, and post-processing recommendations."
                 className="w-full rounded-md border border-zinc-300 bg-white p-3 text-xs text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-950"
               />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">
-                  Recommended Print Settings
-                </label>
-                <Input
-                  type="text"
-                  value={printingSettings}
-                  onChange={(e) => setPrintingSettings(e.target.value)}
-                  placeholder="Layer Height: 0.16mm | Infill: 20%"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-zinc-700 mb-1">
-                  Licence Type
-                </label>
-                <Input
-                  type="text"
-                  value={licenceType}
-                  onChange={(e) => setLicenceType(e.target.value)}
-                  placeholder="Personal Use Only (Non-Commercial)"
-                />
-              </div>
             </div>
           </div>
 

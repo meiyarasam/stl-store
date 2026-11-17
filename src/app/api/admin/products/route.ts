@@ -269,7 +269,7 @@ export async function POST(req: Request) {
           fullDescription: fullDescription?.trim() || shortDescription?.trim() || title.trim(),
           categoryId: finalCategoryId,
           supportedPrinters: supportedPrinters || "FDM / SLA / Resin",
-          printingSettings: printingSettings || "Standard 3D Print Settings",
+          printingSettings: printingSettings?.trim() ? printingSettings.trim() : null,
           licenceType: licenceType || "Personal Use Only (Non-Commercial)",
           isPublished: typeof isPublished === "boolean" ? isPublished : true,
           isFeatured: typeof isFeatured === "boolean" ? isFeatured : true,
