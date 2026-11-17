@@ -4,6 +4,7 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { signOut } from "next-auth/react";
 import {
   LayoutDashboard,
   Box,
@@ -13,6 +14,7 @@ import {
   Users,
   Settings,
   ArrowLeft,
+  LogOut,
 } from "lucide-react";
 
 export function AdminNav() {
@@ -86,6 +88,24 @@ export function AdminNav() {
                 </Link>
               );
             })}
+
+            <div className="h-4 w-px bg-zinc-800 shrink-0 mx-1 hidden sm:block" />
+
+            <button
+              type="button"
+              onClick={async () => {
+                try {
+                  localStorage.removeItem("stlforge_last_active_time");
+                  localStorage.setItem("stlforge_session_logged_out", Date.now().toString());
+                } catch {}
+                await signOut({ callbackUrl: "/admin/login", redirect: true });
+              }}
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-md text-xs font-semibold text-zinc-400 hover:text-red-400 hover:bg-zinc-900 transition-colors shrink-0"
+              title="Sign Out"
+            >
+              <LogOut className="w-3.5 h-3.5 shrink-0" />
+              <span className="hidden lg:inline">Sign Out</span>
+            </button>
           </nav>
         </div>
       </div>

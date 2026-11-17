@@ -68,6 +68,10 @@ export function Header() {
   const handleSignOut = async () => {
     setAccountMenuOpen(false);
     setMobileMenuOpen(false);
+    try {
+      localStorage.removeItem("stlforge_last_active_time");
+      localStorage.setItem("stlforge_session_logged_out", Date.now().toString());
+    } catch {}
     await signOut({ redirect: false });
     window.location.href = "/";
   };

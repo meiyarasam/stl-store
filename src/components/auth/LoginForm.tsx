@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Lock, Mail, AlertCircle, Eye, EyeOff, ShoppingBag, ArrowRight } from "lucide-react";
+import { Lock, Mail, AlertCircle, Eye, EyeOff, ShoppingBag, ArrowRight, Clock } from "lucide-react";
 import { BrandLogo } from "@/components/common/BrandLogo";
 
 export function LoginForm() {
@@ -14,6 +14,8 @@ export function LoginForm() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || searchParams.get("redirect") || "/account";
   const initialEmail = searchParams.get("email") || "";
+  const reason = searchParams.get("reason");
+  const isSessionExpired = reason === "expired";
 
   const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState("");
@@ -86,6 +88,15 @@ export function LoginForm() {
           <ShoppingBag className="w-4 h-4 text-blue-600 shrink-0" />
           <span>
             <strong>Account required to buy:</strong> Sign in or create an account to complete your checkout and download your 3D STL files.
+          </span>
+        </div>
+      )}
+
+      {isSessionExpired && !errorMessage && (
+        <div className="p-3 bg-amber-50 border border-amber-200 text-amber-900 text-xs rounded-xl flex items-center gap-2.5">
+          <Clock className="w-4 h-4 text-amber-600 shrink-0" />
+          <span>
+            <strong>Session expired:</strong> You were automatically logged out due to inactivity. Please sign in to continue.
           </span>
         </div>
       )}

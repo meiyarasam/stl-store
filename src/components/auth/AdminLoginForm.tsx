@@ -2,15 +2,18 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ShieldCheck, Lock, Mail, AlertCircle, Eye, EyeOff, ArrowLeft } from "lucide-react";
+import { ShieldCheck, Lock, Mail, AlertCircle, Eye, EyeOff, ArrowLeft, Clock } from "lucide-react";
 import { BrandLogo } from "@/components/common/BrandLogo";
 
 export function AdminLoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const reason = searchParams.get("reason");
+  const isSessionExpired = reason === "expired";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -56,6 +59,15 @@ export function AdminLoginForm() {
           The Print Factory – Restricted access for marketplace administrators.
         </p>
       </div>
+
+      {isSessionExpired && !errorMessage && (
+        <div className="p-3 bg-amber-950/60 border border-amber-800 text-amber-200 text-xs rounded-xl flex items-center gap-2.5">
+          <Clock className="w-4 h-4 text-amber-400 shrink-0" />
+          <span>
+            <strong>Admin session expired:</strong> You were automatically logged out due to inactivity. Please sign in again.
+          </span>
+        </div>
+      )}
 
       {errorMessage && (
         <div className="p-3 bg-red-950/80 border border-red-800 text-red-200 text-xs rounded-lg flex items-center gap-2">

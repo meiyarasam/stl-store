@@ -3,6 +3,14 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import prisma from "@/lib/database/prisma";
 
+// Configurable session inactivity timeout in minutes (default: 30 minutes)
+const INACTIVITY_TIMEOUT_MINUTES = Number(
+  process.env.NEXT_PUBLIC_SESSION_TIMEOUT_MINUTES || 30
+);
+export const SESSION_INACTIVITY_TIMEOUT_SECONDS = Number(
+  process.env.SESSION_INACTIVITY_TIMEOUT_SECONDS || INACTIVITY_TIMEOUT_MINUTES * 60
+);
+
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
@@ -79,27 +87,77 @@ export const authOptions: NextAuthOptions = {
 
   session: {
     strategy: "jwt",
-    maxAge: 30 * 24 * 60 * 60,
+    maxAge: SESSION_INACTIVITY_TIMEOUT_SECONDS, // 30 minutes (1800s)
+    updateAge: 60, // Sliding window: refresh token on activity after 60s
+  },
+
+  cookies: {
+    sessionToken: {
+      name:
+        process.env.NODE_ENV === "production"
+          ? "__Secure-next-auth.session-token"
+          : "next-auth.session-token",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
   },
 
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
+      const now = Math.floor(Date.now() / 1000);
+
+      // On initial login
       if (user) {
         token.id = user.id;
         token.role = (user as any).role || "CUSTOMER";
         token.country = (user as any).country || "US";
+        token.lastActive = now;
+        (token as any).isExpired = false;
+        return token;
+      }
+
+      // Explicit trigger from client to keep session alive
+      if (trigger === "update") {
+        token.lastActive = now;
+        (token as any).isExpired = false;
+        return token;
+      }
+
+      // Server-side inactivity check:
+      // If lastActive timestamp exists and elapsed time exceeds timeout, mark token expired
+      if (token.lastActive && typeof token.lastActive === "number") {
+        const elapsed = now - token.lastActive;
+        if (elapsed > SESSION_INACTIVITY_TIMEOUT_SECONDS) {
+          (token as any).isExpired = true;
+          return token;
+        }
+      }
+
+      // Slide window: update lastActive if more than 30s have elapsed
+      if (!token.lastActive || now - (token.lastActive as number) >= 30) {
+        token.lastActive = now;
       }
 
       return token;
     },
 
     async session({ session, token }) {
-      if (session.user) {
+      // Invalidate session if token is missing or expired
+      if (!token || !token.id || (token as any).isExpired) {
+        return null as any;
+      }
+
+      if (session?.user) {
         (session.user as any).id = token.id as string;
         (session.user as any).role =
           (token.role as string) || "CUSTOMER";
         (session.user as any).country =
           (token.country as string) || "US";
+        (session.user as any).lastActive = token.lastActive;
       }
 
       return session;
