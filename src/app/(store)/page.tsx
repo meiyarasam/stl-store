@@ -110,22 +110,6 @@ export default async function HomePage() {
                     priority
                     className="object-cover"
                   />
-                  <div className="absolute top-3 left-3 bg-zinc-950/80 backdrop-blur-sm text-white px-2.5 py-1 rounded-md text-[11px] font-semibold flex items-center gap-1.5 shadow-sm">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    Verified Manifold Model
-                  </div>
-                  <div className="absolute bottom-3 left-3 right-3 bg-white/95 backdrop-blur-md p-3 rounded-lg border border-zinc-200/80 shadow-md flex items-center justify-between">
-                    <div>
-                      <span className="text-xs font-bold text-zinc-950 block">Cyberpunk Ronin Bust</span>
-                      <span className="text-[11px] text-zinc-500">Multi-part assembly • 0.12mm tested</span>
-                    </div>
-                    <Link
-                      href="/products/cyberpunk-ronin-bust"
-                      className="px-3 py-1.5 bg-zinc-950 hover:bg-zinc-800 text-white rounded text-xs font-bold transition-colors"
-                    >
-                      View STL
-                    </Link>
-                  </div>
                 </div>
               </div>
             </div>
