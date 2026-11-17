@@ -122,15 +122,6 @@ export function Footer() {
                   Frequently Asked Questions
                 </Link>
               </li>
-              <li className="pt-1">
-                <Link
-                  href="/admin/login"
-                  className="hover:text-white transition-colors inline-flex items-center gap-1.5 text-amber-400 font-semibold"
-                >
-                  <Lock className="w-3.5 h-3.5" />
-                  Admin Login
-                </Link>
-              </li>
             </ul>
           </div>
 
