@@ -15,12 +15,12 @@ interface BrandLogoProps {
 
 export function BrandLogo({
   size = "md",
-  showTagline = true,
+  showTagline = false,
   showText = true,
   href = "/",
   theme = "light",
   className = "",
-  layout = "single-line",
+  layout = "two-line",
 }: BrandLogoProps) {
   const sizeMap = {
     sm: { img: 28, text: "text-sm", sub: "text-[7px]" },
@@ -50,14 +50,14 @@ export function BrandLogo({
             <div className="w-fit flex flex-col justify-center">
               {/* Line 1: THE PRINT */}
               <div
-                className={`flex items-baseline whitespace-nowrap leading-none ${
+                className={`flex items-baseline whitespace-nowrap leading-none font-sans ${
                   theme === "dark" ? "text-white" : "text-[#000000]"
                 }`}
               >
-                <span className="font-light tracking-wide uppercase text-xs sm:text-sm md:text-[15px]">
+                <span className="font-light tracking-wide uppercase text-xs sm:text-sm md:text-[16px]">
                   THE
                 </span>
-                <span className="font-black tracking-normal uppercase text-xs sm:text-sm md:text-[15px] ml-1 sm:ml-1.5">
+                <span className="font-black tracking-normal uppercase text-xs sm:text-sm md:text-[16px] ml-1 sm:ml-1.5">
                   PRINT
                 </span>
               </div>
@@ -65,7 +65,7 @@ export function BrandLogo({
               {/* Line 2: FACTORY */}
               <div
                 aria-label="FACTORY"
-                className={`w-full flex justify-between font-light uppercase text-[9px] sm:text-[10px] md:text-[11px] leading-none whitespace-nowrap mt-1 ${
+                className={`w-full flex justify-between font-light uppercase text-[9px] sm:text-[10px] md:text-[11.5px] leading-none whitespace-nowrap mt-1 font-sans ${
                   theme === "dark" ? "text-white" : "text-[#000000]"
                 }`}
               >
