@@ -5,7 +5,8 @@ import { getCategoryBySlug } from "@/lib/database/categories";
 import { getAllProducts } from "@/lib/database/products";
 import { ProductGrid } from "@/components/products/ProductGrid";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 interface CategoryPageProps {
   params: {

@@ -128,7 +128,7 @@ export async function getAdminAnalytics(): Promise<AnalyticsSummary> {
     // Customers
     prisma.user.count({ where: { role: "CUSTOMER" } }),
     // Published Products
-    prisma.product.count({ where: { isPublished: true } }),
+    prisma.product.count({ where: { isPublished: true, isDeleted: false } }),
     // Download records
     prisma.download.count(),
     // Total download events sum

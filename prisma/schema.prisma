@@ -112,6 +112,7 @@ model Category {
   image       String?
   icon        String?
   isFeatured  Boolean   @default(false)
+  isActive    Boolean   @default(true)
   sortOrder   Int       @default(0)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -119,6 +120,7 @@ model Category {
   products    Product[]
 
   @@index([slug])
+  @@index([isActive])
 }
 
 model Product {
@@ -136,6 +138,8 @@ model Product {
   
   isPublished       Boolean        @default(true)
   isFeatured        Boolean        @default(false)
+  isDeleted         Boolean        @default(false)
+  deletedAt         DateTime?
   viewCount         Int            @default(0)
   downloadCount     Int            @default(0)
   
@@ -155,6 +159,7 @@ model Product {
   @@index([categoryId])
   @@index([isPublished])
   @@index([isFeatured])
+  @@index([isDeleted])
 }
 
 model ProductPrice {

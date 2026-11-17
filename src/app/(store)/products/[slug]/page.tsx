@@ -8,7 +8,8 @@ import { ProductPurchaseCard } from "@/components/products/ProductPurchaseCard";
 import { ProductGrid } from "@/components/products/ProductGrid";
 import { Download, Eye, Layers } from "lucide-react";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 interface ProductDetailsPageProps {
   params: {

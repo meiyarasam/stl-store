@@ -50,6 +50,19 @@ export interface ProductImageItem {
   sortOrder: number;
 }
 
+export interface CategoryDTO {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  image: string;
+  icon: string;
+  isFeatured: boolean;
+  isActive: boolean;
+  sortOrder?: number;
+  productCount?: number;
+}
+
 export interface ProductDTO {
   id: string;
   title: string;
@@ -61,12 +74,15 @@ export interface ProductDTO {
     id: string;
     name: string;
     slug: string;
+    isActive?: boolean;
   };
   supportedPrinters: string;
   printingSettings?: string | null;
   licenceType: string;
   isPublished: boolean;
   isFeatured: boolean;
+  isDeleted?: boolean;
+  deletedAt?: string | null;
   viewCount: number;
   downloadCount: number;
   prices: ProductPriceItem[];

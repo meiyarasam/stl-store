@@ -24,7 +24,7 @@ function parseFileType(val: string | undefined): "STL" | "ZIP" | "OBJ" | "THREE_
 
 export async function GET() {
   try {
-    const products = await getAllProducts();
+    const products = await getAllProducts({ includeUnpublished: true });
     return NextResponse.json({
       success: true,
       message: "Products retrieved successfully",

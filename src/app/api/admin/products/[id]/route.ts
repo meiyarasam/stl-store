@@ -85,9 +85,9 @@ export async function GET(
       },
     });
 
-    if (!product) {
+    if (!product || product.isDeleted) {
       return NextResponse.json(
-        { success: false, message: "Not found", error: "Product not found." },
+        { success: false, message: "Not found", error: "Product not found or has been deleted." },
         { status: 404 }
       );
     }
@@ -171,9 +171,9 @@ export async function PUT(
       include: { prices: true, images: true, files: true },
     });
 
-    if (!existingProduct) {
+    if (!existingProduct || existingProduct.isDeleted) {
       return NextResponse.json(
-        { success: false, message: "Product not found", error: "No product matches ID." },
+        { success: false, message: "Product not found", error: "No active product matches ID." },
         { status: 404 }
       );
     }
@@ -376,6 +376,8 @@ export async function DELETE(
       include: {
         images: true,
         files: true,
+        category: true,
+        orderItems: { select: { id: true } },
       },
     });
 
@@ -386,42 +388,78 @@ export async function DELETE(
       );
     }
 
-    // Collect storage paths for cleanup
-    const storageFilesToDelete = [
-      ...product.files.map((f) => ({ bucket: PRIVATE_BUCKET, path: f.storagePath })),
-      ...product.images
-        .filter((img) => img.url.includes("stl-images-public") || img.url.startsWith("previews/"))
-        .map((img) => {
-          const match = img.url.match(/previews\/[^?]+/);
-          return { bucket: PUBLIC_BUCKET, path: match ? match[0] : "" };
-        })
-        .filter((item) => item.path),
-    ];
+    const hasOrders = product.orderItems.length > 0;
 
-    // Atomic database deletion
-    await prisma.$transaction(async (tx) => {
-      // 1. Delete associated download tokens
-      await tx.download.deleteMany({ where: { productId: id } });
-
-      // 2. Delete associated order items if any
-      await tx.orderItem.deleteMany({ where: { productId: id } });
-
-      // 3. Delete product (cascades prices, images, files, cartItems, wishlists, reviews)
-      await tx.product.delete({ where: { id } });
-    });
-
-    // Best-effort cleanup of storage files
-    for (const item of storageFilesToDelete) {
-      if (item.path) {
-        deleteStorageObject(item.bucket, item.path).catch((err) => {
-          console.warn("Storage cleanup notice for deleted product:", err);
-        });
+    if (!hasOrders) {
+      // 1. Storage cleanup: only delete files not referenced by any other product
+      for (const file of product.files) {
+        if (file.storagePath) {
+          const otherProductWithFile = await prisma.productFile.findFirst({
+            where: {
+              storagePath: file.storagePath,
+              productId: { not: id },
+            },
+          });
+          if (!otherProductWithFile) {
+            deleteStorageObject(PRIVATE_BUCKET, file.storagePath).catch((err) => {
+              console.warn("Storage cleanup notice for file:", err);
+            });
+          }
+        }
       }
+
+      for (const img of product.images) {
+        const match = img.url.match(/previews\/[^?]+/);
+        const imgPath = match ? match[0] : "";
+        if (imgPath) {
+          const otherProductWithImage = await prisma.productImage.findFirst({
+            where: {
+              url: { contains: imgPath },
+              productId: { not: id },
+            },
+          });
+          if (!otherProductWithImage) {
+            deleteStorageObject(PUBLIC_BUCKET, imgPath).catch((err) => {
+              console.warn("Storage cleanup notice for image:", err);
+            });
+          }
+        }
+      }
+
+      // 2. Hard database deletion since no customer order references this product
+      await prisma.$transaction(async (tx) => {
+        await tx.cartItem.deleteMany({ where: { productId: id } });
+        await tx.wishlist.deleteMany({ where: { productId: id } });
+        await tx.review.deleteMany({ where: { productId: id } });
+        await tx.download.deleteMany({ where: { productId: id } });
+        await tx.product.delete({ where: { id } });
+      });
+    } else {
+      // Preserve historical customer orders & purchase downloads by soft-deleting
+      await prisma.product.update({
+        where: { id },
+        data: {
+          isDeleted: true,
+          isPublished: false,
+          deletedAt: new Date(),
+          slug: `${product.slug}_deleted_${Date.now()}`,
+        },
+      });
+
+      // Clear from active carts and wishlists
+      await prisma.cartItem.deleteMany({ where: { productId: id } });
+      await prisma.wishlist.deleteMany({ where: { productId: id } });
     }
 
+    // Complete Next.js route revalidation across public and admin pages
     try {
       revalidatePath("/");
       revalidatePath("/products");
+      revalidatePath(`/products/${product.slug}`);
+      revalidatePath("/categories");
+      if (product.category?.slug) {
+        revalidatePath(`/categories/${product.category.slug}`);
+      }
       revalidatePath("/admin/products");
     } catch (revalErr) {
       console.warn("Revalidation notice:", revalErr);

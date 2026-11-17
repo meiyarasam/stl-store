@@ -6,6 +6,9 @@ import { AdminNav } from "@/components/admin/AdminNav";
 import { getAllProducts } from "@/lib/database/products";
 import { AdminProductsTable } from "@/components/admin/AdminProductsTable";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function AdminProductsPage() {
   const session = await getServerSession(authOptions);
 
