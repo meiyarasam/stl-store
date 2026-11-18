@@ -21,6 +21,7 @@ import {
   CheckCircle2,
   Loader2,
 } from "lucide-react";
+import { trackCheckoutInitiated } from "@/lib/analytics/tracker";
 import Link from "next/link";
 
 declare global {
@@ -62,6 +63,16 @@ export default function CheckoutPage() {
   } | null>(null);
 
   // Prefill details if user is logged in
+  useEffect(() => {
+    if (cart.length > 0) {
+      trackCheckoutInitiated({
+        itemCount: cart.length,
+        total: cartTotal,
+        currency,
+      });
+    }
+  }, [cart.length, cartTotal, currency]);
+
   useEffect(() => {
     if (session?.user) {
       if (session.user.name) setFullName(session.user.name);

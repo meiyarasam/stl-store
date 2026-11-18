@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { CurrencyCode, ProductDTO } from "@/types";
 import { COUNTRIES_LIST, getCurrencyConfig, getEffectiveProductPrice } from "@/lib/currency/currencies";
+import { trackAddToCart } from "@/lib/analytics/tracker";
 
 export interface CartItem {
   product: ProductDTO;
@@ -128,6 +129,16 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   };
 
   const addToCart = (product: ProductDTO, quantity: number = 1) => {
+    try {
+      const price = getProductPrice(product);
+      trackAddToCart(product.id, {
+        title: product.title,
+        slug: product.slug,
+        price: price.amount,
+        currency,
+      });
+    } catch {}
+
     setCart((prev) => {
       const existing = prev.find((item) => item.product.id === product.id);
       if (existing) {

@@ -6,6 +6,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
+  BarChart3,
   Box,
   FolderTree,
   ShoppingBag,
@@ -20,6 +21,7 @@ export function AdminNav() {
 
   const links = [
     { label: "Overview", href: "/admin", icon: LayoutDashboard },
+    { label: "Analytics", href: "/admin/analytics", icon: BarChart3 },
     { label: "Products", href: "/admin/products", icon: Box },
     { label: "Categories", href: "/admin/categories", icon: FolderTree },
     { label: "Orders", href: "/admin/orders", icon: ShoppingBag },

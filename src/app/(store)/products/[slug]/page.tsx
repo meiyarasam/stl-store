@@ -6,6 +6,7 @@ import { ProductGallery } from "@/components/products/ProductGallery";
 import { PrintSpecsTable } from "@/components/products/PrintSpecsTable";
 import { ProductPurchaseCard } from "@/components/products/ProductPurchaseCard";
 import { ProductGrid } from "@/components/products/ProductGrid";
+import { ProductViewBeacon } from "@/components/analytics/ProductViewBeacon";
 import { Download, Eye, Layers } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -32,6 +33,7 @@ export default async function ProductDetailsPage({ params }: ProductDetailsPageP
 
   return (
     <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-10 space-y-8 sm:space-y-12 w-full max-w-full overflow-x-hidden">
+      <ProductViewBeacon productId={product.id} slug={product.slug} title={product.title} />
       {/* Breadcrumb */}
       <nav className="text-xs text-zinc-500 flex items-center gap-1.5 font-medium overflow-x-auto py-1 scrollbar-none">
         <Link href="/" className="hover:text-zinc-900 shrink-0">

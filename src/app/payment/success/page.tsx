@@ -4,6 +4,7 @@ import { getOrderById } from "@/lib/database/orders";
 import { getOrderDownloads } from "@/lib/database/downloads";
 import { formatPrice } from "@/lib/currency/currencies";
 import { CheckCircle2, Download, ArrowRight, ShieldCheck, Box } from "lucide-react";
+import { PurchaseSuccessBeacon } from "@/components/analytics/PurchaseSuccessBeacon";
 
 interface PaymentSuccessPageProps {
   searchParams: {
@@ -23,6 +24,13 @@ export default async function PaymentSuccessPage({ searchParams }: PaymentSucces
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-16 space-y-8">
+      {order && isVerified && (
+        <PurchaseSuccessBeacon
+          orderNumber={order.orderNumber}
+          total={Number(order.total)}
+          currency={order.currency}
+        />
+      )}
       {/* Success Badge & Banner */}
       <div className="text-center space-y-3">
         <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-sm">

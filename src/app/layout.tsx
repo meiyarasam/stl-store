@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 
-import { Analytics } from "@vercel/analytics/next";
+import { AnalyticsWrapper } from "./analytics";
 
 import "./globals.css";
 
@@ -77,8 +77,8 @@ export default function RootLayout({
           </StoreProvider>
         </AuthProvider>
 
-        {/* Vercel Website Analytics */}
-        <Analytics />
+        {/* Vercel Website Analytics (Excluding Admin Traffic) */}
+        <AnalyticsWrapper />
       </body>
     </html>
   );

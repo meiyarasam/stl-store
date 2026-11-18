@@ -7,6 +7,7 @@ import { DashboardMetrics } from "@/components/admin/DashboardMetrics";
 import { AnalyticsCharts } from "@/components/admin/AnalyticsCharts";
 import {
   Plus,
+  BarChart3,
   ArrowRight,
   RefreshCw,
   ShoppingBag,
@@ -81,6 +82,15 @@ export function AdminDashboardClient({ initialAnalytics }: AdminDashboardClientP
             <RefreshCw className={`w-3.5 h-3.5 text-zinc-600 ${isRefreshing ? "animate-spin" : ""}`} />
             <span>{isRefreshing ? "Refreshing..." : "Refresh Data"}</span>
           </button>
+
+          <Link
+            href="/admin/analytics"
+            className="inline-flex items-center gap-1.5 px-3 py-2 bg-white border border-zinc-300 hover:bg-zinc-50 rounded-lg text-xs font-semibold text-zinc-800 transition-colors shadow-2xs"
+            title="Open comprehensive Customer & Traffic Analytics"
+          >
+            <BarChart3 className="w-3.5 h-3.5 text-blue-600" />
+            <span className="hidden sm:inline">Detailed Analytics</span>
+          </Link>
 
           <Link
             href="/admin/products/new"
